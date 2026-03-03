@@ -1,5 +1,4 @@
 use crate::live::opcodes_models::class::ClassSpec;
-use crate::live::skill_names;
 use blueprotobuf_lib::blueprotobuf::{EEntityType, SyncContainerData};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -393,16 +392,6 @@ static BOSS_EXCLUSION_NAMES: LazyLock<HashSet<String>> = LazyLock::new(|| {
     s.insert("divine defense tower".to_string());
     s
 });
-
-impl Skill {
-    pub fn get_skill_name(skill_uid: i64) -> String {
-        i32::try_from(skill_uid)
-            .ok()
-            .and_then(skill_names::lookup)
-            .map(|name| format!("{name} ({skill_uid})"))
-            .unwrap_or_else(|| skill_uid.to_string())
-    }
-}
 
 impl Encounter {
     /// Reset only combat-specific state while preserving player identity fields and cache.
