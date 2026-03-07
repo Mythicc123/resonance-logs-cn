@@ -49,6 +49,7 @@
       totalDps: 0,
       totalDmg: 0,
       elapsedMs: 0,
+      activeCombatTimeMs: 0,
       fightStartTimestampMs: 0,
       bosses: [],
       sceneId: null,
@@ -77,6 +78,7 @@
     totalDps: 0,
     totalDmg: 0,
     elapsedMs: 0,
+    activeCombatTimeMs: 0,
     fightStartTimestampMs: 0,
     bosses: [],
     sceneId: null,
@@ -97,6 +99,7 @@
         data.elapsedMs > 0 ? Number(data.totalDmg) / (Number(data.elapsedMs) / 1000) : 0,
       totalDmg: Number(data.totalDmg),
       elapsedMs: Number(data.elapsedMs),
+      activeCombatTimeMs: Number(data.activeCombatTimeMs),
       fightStartTimestampMs: Number(data.fightStartTimestampMs),
       bosses: data.bosses,
       sceneId: data.sceneId,
@@ -188,6 +191,15 @@
               {@attach tooltip(() => "Time Elapsed")}
               >{formatElapsed(displayElapsedMs)}</span
             >
+            {#if h.showActiveTimer}
+              <span
+                class="font-bold text-foreground tabular-nums tracking-tight leading-none"
+                style="font-size: {h.activeTimerFontSize}px"
+                {@attach tooltip(() => "Active Combat Time")}
+              >
+                / {formatElapsed(displayHeaderInfo.activeCombatTimeMs)}
+              </span>
+            {/if}
           </div>
         {/if}
 

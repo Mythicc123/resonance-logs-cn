@@ -25,6 +25,7 @@ export type HeaderInfo = {
   totalDps: number;
   totalDmg: number;
   elapsedMs: number;
+  activeCombatTimeMs: number;
   fightStartTimestampMs: number; // Unix timestamp when fight started
   bosses: BossHealth[];
   sceneId: number | null;
@@ -158,6 +159,7 @@ export type RawEntityData = BindingRawEntityData;
 
 export type LiveDataPayload = {
   elapsedMs: number;
+  activeCombatTimeMs: number;
   fightStartTimestampMs: number;
   totalDmg: number;
   totalDmgBossOnly: number;

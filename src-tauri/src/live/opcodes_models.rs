@@ -10,6 +10,10 @@ pub struct Encounter {
     pub is_encounter_paused: bool,
     pub time_last_combat_packet_ms: u128, // in ms
     pub time_fight_start_ms: u128,        // in ms
+    /// Accumulated active combat time in milliseconds for global True DPS.
+    pub active_combat_time_ms: u128,
+    /// Timestamp of the last damage event used to compute global active time.
+    pub last_combat_timestamp_ms: Option<u128>,
     pub total_dmg: u128,
     pub total_dmg_boss_only: u128,
     pub total_heal: u128,
@@ -343,10 +347,6 @@ pub struct Entity {
     pub skill_uid_to_dmg_skill: HashMap<i64, Skill>,
     // Boss-only damage
     pub damage_boss_only: CombatStats,
-    /// Accumulated active damage time in milliseconds for True DPS.
-    pub active_dmg_time_ms: u128,
-    /// Timestamp of the last damage event used to compute active time.
-    pub last_dmg_timestamp_ms: Option<u128>,
     // Healing
     pub healing: CombatStats,
     pub skill_uid_to_heal_skill: HashMap<i64, Skill>,
@@ -420,6 +420,8 @@ impl Encounter {
         // Reset encounter-level combat state
         self.time_last_combat_packet_ms = 0;
         self.time_fight_start_ms = 0;
+        self.active_combat_time_ms = 0;
+        self.last_combat_timestamp_ms = None;
         self.total_dmg = 0;
         self.total_dmg_boss_only = 0;
         self.total_heal = 0;
@@ -432,8 +434,6 @@ impl Encounter {
             entity.skill_uid_to_dmg_skill.clear();
             entity.dmg_to_target.clear();
             entity.skill_dmg_to_target.clear();
-            entity.active_dmg_time_ms = 0;
-            entity.last_dmg_timestamp_ms = None;
 
             // Healing
             entity.healing = CombatStats::default();

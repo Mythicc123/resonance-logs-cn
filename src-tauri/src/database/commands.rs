@@ -38,6 +38,8 @@ pub struct EncounterSummaryDto {
     pub scene_name: Option<String>,
     /// The duration of the encounter in seconds.
     pub duration: f64,
+    /// The accumulated active combat duration in seconds.
+    pub active_combat_duration: Option<f64>,
     /// The UID of the local player for this encounter.
     pub local_player_id: Option<i64>,
     /// A list of bosses in the encounter.
@@ -282,6 +284,7 @@ pub fn get_recent_encounters_filtered(
             Option<i32>,
             Option<String>,
             f64,
+            Option<f64>,
             Option<i64>,
             i32,
             Option<String>,
@@ -298,6 +301,7 @@ pub fn get_recent_encounters_filtered(
                 e::scene_id,
                 e::scene_name,
                 e::duration,
+                e::active_combat_duration,
                 e::remote_encounter_id,
                 e::is_favorite,
                 e::boss_names,
@@ -315,6 +319,7 @@ pub fn get_recent_encounters_filtered(
                     _,
                     _,
                     scene_name,
+                    _,
                     _,
                     _,
                     is_favorite,
@@ -396,6 +401,7 @@ pub fn get_recent_encounters_filtered(
             scene_id,
             scene_name,
             duration,
+            active_combat_duration,
             remote_id,
             is_fav,
             boss_json,
@@ -424,6 +430,7 @@ pub fn get_recent_encounters_filtered(
                 scene_id,
                 scene_name,
                 duration,
+                active_combat_duration,
                 local_player_id: None,
                 bosses: boss_entries,
                 players: player_entries,
@@ -559,6 +566,7 @@ pub fn get_encounter_by_id(encounter_id: i32) -> Result<EncounterSummaryDto, Str
         Option<i32>,
         Option<String>,
         f64,
+        Option<f64>,
         Option<i64>,
         Option<i64>,
         i32,
@@ -576,6 +584,7 @@ pub fn get_encounter_by_id(encounter_id: i32) -> Result<EncounterSummaryDto, Str
                 e::scene_id,
                 e::scene_name,
                 e::duration,
+                e::active_combat_duration,
                 e::local_player_id,
                 e::remote_encounter_id,
                 e::is_favorite,
@@ -587,7 +596,7 @@ pub fn get_encounter_by_id(encounter_id: i32) -> Result<EncounterSummaryDto, Str
     })?;
 
     let boss_names: Vec<BossSummaryDto> = row
-        .11
+        .12
         .as_ref()
         .and_then(|j| serde_json::from_str::<Vec<String>>(j).ok())
         .unwrap_or_default()
@@ -598,7 +607,7 @@ pub fn get_encounter_by_id(encounter_id: i32) -> Result<EncounterSummaryDto, Str
             is_defeated: true,
         })
         .collect();
-    let player_entries = parse_player_entries(&row.12);
+    let player_entries = parse_player_entries(&row.13);
 
     Ok(EncounterSummaryDto {
         id: row.0,
@@ -609,11 +618,12 @@ pub fn get_encounter_by_id(encounter_id: i32) -> Result<EncounterSummaryDto, Str
         scene_id: row.5,
         scene_name: row.6.clone(),
         duration: row.7,
-        local_player_id: row.8,
+        active_combat_duration: row.8,
+        local_player_id: row.9,
         bosses: boss_names,
         players: player_entries,
-        remote_encounter_id: row.9,
-        is_favorite: row.10 != 0,
+        remote_encounter_id: row.10,
+        is_favorite: row.11 != 0,
     })
 }
 
@@ -644,7 +654,6 @@ pub fn get_encounter_entities_raw(encounter_id: i32) -> Result<Vec<lc::HistoryEn
             damage_boss_only: lc::to_raw_combat_stats(&entity.damage_boss_only),
             healing: lc::to_raw_combat_stats(&entity.healing),
             taken: lc::to_raw_combat_stats(&entity.taken),
-            active_dmg_time_ms: entity.active_dmg_time_ms,
             dmg_skills: entity
                 .skill_uid_to_dmg_skill
                 .iter()

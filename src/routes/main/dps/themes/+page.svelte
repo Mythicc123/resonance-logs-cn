@@ -292,6 +292,7 @@
         windowPadding: 0,
         headerPadding: 0,
         showTimer: false,
+        showActiveTimer: false,
         showSceneName: false,
         showResetButton: false,
         showPauseButton: false,
@@ -304,6 +305,7 @@
         showNavigationTabs: false,
         timerLabelFontSize: 9,
         timerFontSize: 12,
+        activeTimerFontSize: 12,
         sceneNameFontSize: 10,
         resetButtonSize: 14,
         resetButtonPadding: 4,
@@ -358,6 +360,7 @@
         headerPadding: 6,
         // Enable only: timer, scene name, reset and pause
         showTimer: true,
+        showActiveTimer: false,
         showSceneName: true,
         showResetButton: true,
         showPauseButton: true,
@@ -371,6 +374,7 @@
         showNavigationTabs: false,
         timerLabelFontSize: 10,
         timerFontSize: 14,
+        activeTimerFontSize: 14,
         sceneNameFontSize: 11,
         resetButtonSize: 16,
         resetButtonPadding: 6,
@@ -425,6 +429,7 @@
         headerPadding: 8,
         // Enable all header features for medium
         showTimer: true,
+        showActiveTimer: false,
         showSceneName: true,
         showResetButton: true,
         showPauseButton: true,
@@ -437,6 +442,7 @@
         showNavigationTabs: true,
         timerLabelFontSize: 12,
         timerFontSize: 18,
+        activeTimerFontSize: 18,
         sceneNameFontSize: 14,
         resetButtonSize: 20,
         resetButtonPadding: 8,
@@ -491,6 +497,7 @@
         headerPadding: 12,
         // Enable all header features for large
         showTimer: true,
+        showActiveTimer: false,
         showSceneName: true,
         showResetButton: true,
         showPauseButton: true,
@@ -503,6 +510,7 @@
         showNavigationTabs: true,
         timerLabelFontSize: 14,
         timerFontSize: 24,
+        activeTimerFontSize: 24,
         sceneNameFontSize: 18,
         resetButtonSize: 26,
         resetButtonPadding: 10,
@@ -1534,6 +1542,13 @@
                     description="显示战斗计时"
                   />
                   {#if SETTINGS.live.headerCustomization.state.showTimer}
+                    <SettingsSwitch
+                      bind:checked={
+                        SETTINGS.live.headerCustomization.state.showActiveTimer
+                      }
+                      label="显示活跃战斗时间"
+                      description="在主计时器旁显示用于真秒伤的全局活跃时间"
+                    />
                     <SettingsSlider
                       bind:value={
                         SETTINGS.live.headerCustomization.state
@@ -1557,6 +1572,20 @@
                       description="计时数值字体大小"
                       unit="px"
                     />
+                    {#if SETTINGS.live.headerCustomization.state.showActiveTimer}
+                      <SettingsSlider
+                        bind:value={
+                          SETTINGS.live.headerCustomization.state
+                            .activeTimerFontSize
+                        }
+                        min={10}
+                        max={32}
+                        step={1}
+                        label="活跃时间字体大小"
+                        description="活跃战斗时间数值字体大小"
+                        unit="px"
+                      />
+                    {/if}
                   {/if}
                 </div>
 

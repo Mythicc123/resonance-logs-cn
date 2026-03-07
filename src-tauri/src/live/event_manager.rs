@@ -282,6 +282,7 @@ pub fn generate_live_data_payload(
     let elapsed_ms = encounter
         .time_last_combat_packet_ms
         .saturating_sub(encounter.time_fight_start_ms);
+    let active_combat_time_ms = encounter.active_combat_time_ms.min(elapsed_ms);
 
     let mut entities = Vec::with_capacity(encounter.entity_uid_to_entity.len());
     for (&uid, entity) in &encounter.entity_uid_to_entity {
@@ -325,7 +326,6 @@ pub fn generate_live_data_payload(
             damage_boss_only: to_raw_combat_stats(&entity.damage_boss_only),
             healing: to_raw_combat_stats(&entity.healing),
             taken: to_raw_combat_stats(&entity.taken),
-            active_dmg_time_ms: entity.active_dmg_time_ms,
             dmg_skills: entity
                 .skill_uid_to_dmg_skill
                 .iter()
@@ -387,6 +387,7 @@ pub fn generate_live_data_payload(
 
     LiveDataPayload {
         elapsed_ms,
+        active_combat_time_ms,
         fight_start_timestamp_ms: encounter.time_fight_start_ms,
         total_dmg: encounter.total_dmg,
         total_dmg_boss_only: encounter.total_dmg_boss_only,

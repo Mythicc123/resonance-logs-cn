@@ -26,6 +26,8 @@ pub struct HeaderInfo {
     pub total_dmg: u128,
     /// The elapsed time of the encounter in milliseconds.
     pub elapsed_ms: u128,
+    /// The accumulated active combat time in milliseconds.
+    pub active_combat_time_ms: u128,
     /// The timestamp of when the fight started, in milliseconds since the Unix epoch.
     pub fight_start_timestamp_ms: u128, // Unix timestamp when fight started
     /// A list of bosses in the encounter.
@@ -41,6 +43,7 @@ pub struct HeaderInfo {
 #[serde(rename_all = "camelCase")]
 pub struct LiveDataPayload {
     pub elapsed_ms: u128,
+    pub active_combat_time_ms: u128,
     pub fight_start_timestamp_ms: u128,
     pub total_dmg: u128,
     pub total_dmg_boss_only: u128,
@@ -68,7 +71,6 @@ pub struct RawEntityData {
     pub damage_boss_only: RawCombatStats,
     pub healing: RawCombatStats,
     pub taken: RawCombatStats,
-    pub active_dmg_time_ms: u128,
     pub dmg_skills: HashMap<i64, RawSkillStats>,
     pub heal_skills: HashMap<i64, RawSkillStats>,
     pub taken_skills: HashMap<i64, RawSkillStats>,
@@ -89,7 +91,6 @@ pub struct HistoryEntityData {
     pub damage_boss_only: RawCombatStats,
     pub healing: RawCombatStats,
     pub taken: RawCombatStats,
-    pub active_dmg_time_ms: u128,
     pub dmg_skills: HashMap<i64, RawSkillStats>,
     pub heal_skills: HashMap<i64, RawSkillStats>,
     pub taken_skills: HashMap<i64, RawSkillStats>,

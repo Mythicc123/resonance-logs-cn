@@ -68,6 +68,8 @@ diesel::table! {
         scene_name -> Nullable<Text>,
         // The duration of the encounter in seconds.
         duration -> Double,
+        // The accumulated active combat duration in seconds.
+        active_combat_duration -> Nullable<Double>,
         // Timestamp (ms) when this encounter was successfully uploaded to the website.
         uploaded_at_ms -> Nullable<BigInt>,
         // The encounter ID on the remote website/server after successful upload.

@@ -214,6 +214,11 @@ fn build_encounter_metadata(
     player_names: Vec<PlayerNameEntry>,
     is_manual: bool,
 ) -> EncounterMetadata {
+    let elapsed_ms = encounter
+        .time_last_combat_packet_ms
+        .saturating_sub(encounter.time_fight_start_ms);
+    let active_combat_time_ms = encounter.active_combat_time_ms.min(elapsed_ms);
+
     EncounterMetadata {
         started_at_ms: encounter.time_fight_start_ms as i64,
         ended_at_ms: Some(now_ms()),
@@ -222,10 +227,8 @@ fn build_encounter_metadata(
         total_heal: encounter.total_heal.min(i64::MAX as u128) as i64,
         scene_id: encounter.current_scene_id,
         scene_name: encounter.current_scene_name.clone(),
-        duration: ((encounter
-            .time_last_combat_packet_ms
-            .saturating_sub(encounter.time_fight_start_ms)) as f64)
-            / 1000.0,
+        duration: (elapsed_ms as f64) / 1000.0,
+        active_combat_duration: Some(active_combat_time_ms as f64 / 1000.0),
         is_manually_reset: is_manual,
         boss_names,
         player_names,
@@ -897,6 +900,7 @@ impl AppStateManager {
                 total_dps: 0.0,
                 total_dmg: 0,
                 elapsed_ms: 0,
+                active_combat_time_ms: 0,
                 fight_start_timestamp_ms: 0,
                 bosses: vec![],
                 scene_id: state.encounter.current_scene_id,

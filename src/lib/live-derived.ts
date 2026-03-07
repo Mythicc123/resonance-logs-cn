@@ -29,6 +29,7 @@ function statsByMetric(entity: RawEntityData, metric: Metric): RawCombatStats {
 type PlayerRowsSource = {
   entities: RawEntityData[];
   elapsedMs: number;
+  activeCombatTimeMs: number;
   totalDmg: number;
   totalHeal: number;
   totalDmgBossOnly: number;
@@ -39,6 +40,9 @@ export function computePlayerRowsFromEntities(
   metric: Metric,
 ): PlayerRow[] {
   const elapsedSecs = source.elapsedMs > 0 ? source.elapsedMs / 1000 : 0;
+  const effectiveActiveCombatMs = Math.min(source.activeCombatTimeMs, source.elapsedMs);
+  const activeCombatSecs =
+    effectiveActiveCombatMs > 0 ? effectiveActiveCombatMs / 1000 : 0;
   const totalMetric =
     metric === "heal"
       ? source.totalHeal
@@ -51,7 +55,6 @@ export function computePlayerRowsFromEntities(
       const stats = statsByMetric(entity, metric);
       const total = Number(stats.total || 0);
       const hits = Number(stats.hits || 0);
-      const activeSecs = entity.activeDmgTimeMs > 0 ? entity.activeDmgTimeMs / 1000 : 0;
       const bossDmg = metric === "dps" ? Number(entity.damageBossOnly?.total || 0) : 0;
       const bossTotal = Number(source.totalDmgBossOnly || 0);
 
@@ -64,8 +67,8 @@ export function computePlayerRowsFromEntities(
         seasonStrength: entity.seasonStrength ?? 0,
         totalDmg: total,
         dps: elapsedSecs > 0 ? total / elapsedSecs : 0,
-        tdps: metric === "dps" && activeSecs > 0 ? total / activeSecs : 0,
-        activeTimeMs: metric === "dps" ? entity.activeDmgTimeMs : 0,
+        tdps: metric === "dps" && activeCombatSecs > 0 ? total / activeCombatSecs : 0,
+        activeTimeMs: metric === "dps" ? effectiveActiveCombatMs : 0,
         bossDps: metric === "dps" && elapsedSecs > 0 ? bossDmg / elapsedSecs : 0,
         dmgPct: percent(total, totalMetric),
         critRate: rate(Number(stats.critHits || 0), hits),
@@ -88,6 +91,7 @@ export function computePlayerRows(data: LiveDataPayload, metric: Metric): Player
     {
       entities: data.entities,
       elapsedMs: data.elapsedMs,
+      activeCombatTimeMs: data.activeCombatTimeMs,
       totalDmg: data.totalDmg,
       totalHeal: data.totalHeal,
       totalDmgBossOnly: data.totalDmgBossOnly,
@@ -137,6 +141,7 @@ export function computeHeaderInfo(data: LiveDataPayload): HeaderInfo {
     totalDps: elapsedSecs > 0 ? data.totalDmg / elapsedSecs : 0,
     totalDmg: data.totalDmg,
     elapsedMs: data.elapsedMs,
+    activeCombatTimeMs: data.activeCombatTimeMs,
     fightStartTimestampMs: data.fightStartTimestampMs,
     bosses: data.bosses,
     sceneId: data.sceneId,

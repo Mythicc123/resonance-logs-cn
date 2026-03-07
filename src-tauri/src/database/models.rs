@@ -127,6 +127,8 @@ pub struct EncounterRow {
     pub scene_name: Option<String>,
     /// The duration of the encounter in seconds.
     pub duration: f64,
+    /// The accumulated active combat duration in seconds.
+    pub active_combat_duration: Option<f64>,
     /// When this encounter was uploaded to the website (ms since epoch).
     pub uploaded_at_ms: Option<i64>,
     /// The encounter ID on the remote website/server after successful upload.
@@ -159,6 +161,8 @@ pub struct NewEncounter {
     pub scene_name: Option<String>,
     /// The duration of the encounter in seconds.
     pub duration: f64,
+    /// The accumulated active combat duration in seconds.
+    pub active_combat_duration: Option<f64>,
 }
 
 #[derive(Debug, Clone, Queryable, Identifiable, Associations, Serialize, Deserialize)]

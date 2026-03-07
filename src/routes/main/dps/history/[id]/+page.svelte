@@ -124,12 +124,18 @@
   function buildHistoryPlayers(
     entities: HistoryEntityData[],
     durationSeconds: number,
+    activeCombatDurationSeconds: number | null | undefined,
     localUid: number | null,
   ): HistoryPlayerRow[] {
     const elapsedMs = Math.max(1, Math.floor(durationSeconds * 1000));
+    const activeCombatMs = Math.max(
+      1,
+      Math.floor((activeCombatDurationSeconds ?? durationSeconds) * 1000),
+    );
     const source = {
       entities,
       elapsedMs,
+      activeCombatTimeMs: activeCombatMs,
       totalDmg: entities.reduce((sum, entity) => sum + (entity.damage?.total ?? 0), 0),
       totalHeal: entities.reduce((sum, entity) => sum + (entity.healing?.total ?? 0), 0),
       totalDmgBossOnly: entities.reduce((sum, entity) => sum + (entity.damageBossOnly?.total ?? 0), 0),
@@ -275,7 +281,12 @@
           taken: zeroCombatStats(),
         };
       });
-      return buildHistoryPlayers(targetEntities, encounterDurationSeconds, localPlayerUid)
+      return buildHistoryPlayers(
+        targetEntities,
+        encounterDurationSeconds,
+        encounter?.activeCombatDuration ?? null,
+        localPlayerUid,
+      )
         .sort((a, b) => b.totalDmg - a.totalDmg);
     } else if (activeTab === "tanked") {
       return [...players]
@@ -497,7 +508,12 @@
                 encounterRes.data.startedAtMs) /
                 1000,
             );
-      players = buildHistoryPlayers(rawEntities, durationSeconds, localPlayerUid);
+      players = buildHistoryPlayers(
+        rawEntities,
+        durationSeconds,
+        encounterRes.data.activeCombatDuration ?? null,
+        localPlayerUid,
+      );
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     }

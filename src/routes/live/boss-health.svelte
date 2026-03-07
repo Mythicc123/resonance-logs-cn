@@ -12,6 +12,7 @@
     totalDps: 0,
     totalDmg: 0,
     elapsedMs: 0,
+    activeCombatTimeMs: 0,
     fightStartTimestampMs: 0,
     bosses: [],
     sceneId: null,

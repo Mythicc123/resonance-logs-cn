@@ -47,6 +47,7 @@ pub struct EncounterMetadata {
     pub scene_id: Option<i32>,
     pub scene_name: Option<String>,
     pub duration: f64,
+    pub active_combat_duration: Option<f64>,
     pub is_manually_reset: bool,
     pub boss_names: Vec<String>,
     pub player_names: Vec<PlayerNameEntry>,
@@ -235,6 +236,7 @@ fn prune_and_reindex_encounters(conn: &mut SqliteConnection, keep: i64) -> Resul
                    scene_id,
                    scene_name,
                    duration,
+                   active_combat_duration,
                    uploaded_at_ms,
                    remote_encounter_id,
                    is_favorite,
@@ -269,6 +271,7 @@ fn prune_and_reindex_encounters(conn: &mut SqliteConnection, keep: i64) -> Resul
                    scene_id,
                    scene_name,
                    duration,
+                   active_combat_duration,
                    uploaded_at_ms,
                    remote_encounter_id,
                    is_favorite,
@@ -286,6 +289,7 @@ fn prune_and_reindex_encounters(conn: &mut SqliteConnection, keep: i64) -> Resul
                    scene_id,
                    scene_name,
                    duration,
+                   active_combat_duration,
                    uploaded_at_ms,
                    remote_encounter_id,
                    is_favorite,
@@ -420,6 +424,7 @@ pub fn save_encounter(encounter: &Encounter, metadata: &EncounterMetadata) {
                 scene_id: metadata.scene_id,
                 scene_name: metadata.scene_name.clone(),
                 duration: metadata.duration,
+                active_combat_duration: metadata.active_combat_duration,
             };
 
             diesel::insert_into(e::encounters)

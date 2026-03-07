@@ -535,6 +535,10 @@ sceneName: string | null;
  */
 duration: number; 
 /**
+ * The accumulated active combat duration in seconds.
+ */
+activeCombatDuration: number | null; 
+/**
  * The UID of the local player for this encounter.
  */
 localPlayerId: number | null; 
@@ -555,7 +559,7 @@ remoteEncounterId: number | null;
  */
 isFavorite: boolean }
 export type GpuSupport = { cuda_available: boolean; opencl_available: boolean }
-export type HistoryEntityData = { uid: number; name: string; classId: number; classSpec: number; className: string; classSpecName: string; abilityScore: number; seasonStrength: number; damage: RawCombatStats; damageBossOnly: RawCombatStats; healing: RawCombatStats; taken: RawCombatStats; activeDmgTimeMs: number; dmgSkills: Partial<{ [key in number]: RawSkillStats }>; healSkills: Partial<{ [key in number]: RawSkillStats }>; takenSkills: Partial<{ [key in number]: RawSkillStats }>; dmgPerTarget: PerTargetStats[]; healPerTarget: PerTargetStats[] }
+export type HistoryEntityData = { uid: number; name: string; classId: number; classSpec: number; className: string; classSpecName: string; abilityScore: number; seasonStrength: number; damage: RawCombatStats; damageBossOnly: RawCombatStats; healing: RawCombatStats; taken: RawCombatStats; dmgSkills: Partial<{ [key in number]: RawSkillStats }>; healSkills: Partial<{ [key in number]: RawSkillStats }>; takenSkills: Partial<{ [key in number]: RawSkillStats }>; dmgPerTarget: PerTargetStats[]; healPerTarget: PerTargetStats[] }
 export type ModuleInfo = { name: string; config_id: number; uuid: number; quality: number; parts: ModulePart[] }
 export type ModulePart = { id: number; name: string; value: number }
 export type ModuleSolution = { modules: ModuleInfo[]; score: number; attr_breakdown: Partial<{ [key in string]: number }> }
@@ -612,6 +616,8 @@ import {
 import * as TAURI_API_EVENT from "@tauri-apps/api/event";
 import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
 
+void TAURI_CHANNEL;
+
 type __EventObj__<T> = {
 	listen: (
 		cb: TAURI_API_EVENT.EventCallback<T>,
@@ -662,3 +668,5 @@ function __makeEvents__<T extends Record<string, any>>(
 		},
 	);
 }
+
+void __makeEvents__;

@@ -7,7 +7,7 @@
 export const historyDpsPlayerColumns = [
   { key: 'totalDmg', header: '伤害', label: '伤害', description: "显示玩家造成的总伤害", format: (v: number) => v.toLocaleString() },
   { key: 'dps', header: '秒伤', label: '秒伤', description: "显示玩家每秒造成的伤害 (DPS)", format: (v: number) => v.toFixed(1) },
-  { key: 'tdps', header: '真秒伤', label: '真秒伤', description: "显示玩家的真实 DPS（仅计算活跃时间）", format: (v: number) => v.toFixed(1) },
+  { key: 'tdps', header: '真秒伤', label: '真秒伤', description: "显示玩家的真实 DPS（基于全局活跃战斗时间）", format: (v: number) => v.toFixed(1) },
   { key: 'bossDmg', header: '首领伤害', label: '首领伤害', description: "显示玩家对首领造成的伤害", format: (v: number) => v.toLocaleString() },
   { key: 'bossDps', header: '首领秒伤', label: '首领秒伤', description: "显示玩家对首领的秒伤 (Boss DPS)", format: (v: number) => v.toFixed(1) },
   { key: 'dmgPct', header: '占比%', label: '占比%', description: "显示玩家伤害占比", format: (v: number) => v.toFixed(1) + '%' },
