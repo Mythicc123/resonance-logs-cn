@@ -50,6 +50,25 @@ export async function registerShortcut(cmdId: string, shortcutKey: string) {
         });
         break;
 
+      case "toggleOverlayWindow":
+        await register(shortcutKey, async (event) => {
+          if (event.state === "Pressed") {
+            const overlayWindow = await WebviewWindow.getByLabel("game-overlay");
+            if (!overlayWindow) {
+              return;
+            }
+            const isVisible = await overlayWindow.isVisible();
+            if (isVisible) {
+              await overlayWindow.hide();
+            } else {
+              await overlayWindow.show();
+              await overlayWindow.unminimize();
+              await overlayWindow.setFocus();
+            }
+          }
+        });
+        break;
+
       case "enableClickthrough":
         await register(shortcutKey, async (event) => {
           if (event.state === "Pressed") {

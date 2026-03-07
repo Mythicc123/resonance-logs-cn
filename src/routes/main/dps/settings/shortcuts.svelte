@@ -166,6 +166,10 @@
       id: "toggleOverlayEdit",
       label: "切换遮罩编辑模式",
     },
+    {
+      id: "toggleOverlayWindow",
+      label: "切换遮罩窗口",
+    },
   ];
 </script>
 

@@ -553,6 +553,7 @@ const DEFAULT_SETTINGS = {
     showLiveMeter: "",
     hideLiveMeter: "",
     toggleLiveMeter: "",
+    toggleOverlayWindow: "",
     enableClickthrough: "",
     disableClickthrough: "",
     toggleClickthrough: "",
