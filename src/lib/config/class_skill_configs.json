@@ -183,5 +183,217 @@
         "imagePath": "/images/frost_mage/skill/weapon_mz-01_ult_6019181098229944913.png"
       }
     ]
+  },
+  "stormblade": {
+    "classKey": "stormblade",
+    "className": "Stormblade",
+    "classId": 6,
+    "defaultMonitoredBuffIds": [510072],
+    "derivations": [
+      {
+        "sourceSkillId": 1731,
+        "derivedSkillId": 1732,
+        "triggerBuffBaseId": 43201,
+        "derivedName": "Stormflash (Derived)",
+        "derivedImagePath": "/images/stormblade/skill/weapon_tdl-01_kx08_1310086718716380591.png"
+      },
+      {
+        "sourceSkillId": 1724,
+        "derivedSkillId": 1742,
+        "triggerBuffBaseId": 44701,
+        "derivedName": "Thundercleave",
+        "derivedImagePath": "/images/stormblade/skill/weapon_tdl-01_kx06_-1183548700792331979.png"
+      },
+      {
+        "sourceSkillId": 1736,
+        "derivedSkillId": 1736,
+        "triggerBuffBaseId": 179907,
+        "derivedName": "Phantom Slash (Bladewind)",
+        "derivedImagePath": "/images/stormblade/skill/weapon_tdl-01_tf04_2216604320468850874.png"
+      },
+      {
+        "sourceSkillId": 1714,
+        "derivedSkillId": 1714,
+        "triggerBuffBaseId": 155101,
+        "derivedName": "Thunder Cut",
+        "derivedImagePath": "/images/stormblade/skill/weapon_tdl-01_tf05_6590570411655847853.png"
+      }
+    ],
+    "skills": [
+      {
+        "skillId": 1701,
+        "name": "Judgment Cut",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_skill_atk01_-4614215089673209881.png"
+      },
+      {
+        "skillId": 1714,
+        "name": "Iaido Slash",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_tg01_5475604808947104442.png"
+      },
+      {
+        "skillId": 1715,
+        "name": "Moonstrike",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_tg02_-857792875300157552.png"
+      },
+      {
+        "skillId": 1724,
+        "name": "Thundercut",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_kx06_-1183548700792331979.png"
+      },
+      {
+        "skillId": 1731,
+        "name": "Stormflash",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_kx08_1310086718716380591.png"
+      },
+      {
+        "skillId": 1735,
+        "name": "Dracoflash",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_tf03_9184457839467773652.png"
+      },
+      {
+        "skillId": 1736,
+        "name": "Phantom Slash",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_tf04_2216604320468850874.png"
+      },
+      {
+        "skillId": 1738,
+        "name": "Chaos Breaker",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_tf02_7737803887291044828.png"
+      },
+      {
+        "skillId": 1728,
+        "name": "Ultimate Slash",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_ult_3879339252261768906.png"
+      },
+      {
+        "skillId": 1740,
+        "name": "Storm Scythe (Thundercleave)",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_skill_03_-9124099467366223724.png"
+      },
+      {
+        "skillId": 1727,
+        "name": "Piercing Slash",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_skill_passive_787170827722622388.png"
+      },
+      {
+        "skillId": 1724,
+        "name": "Thundercut - Stage 1",
+        "imagePath": "/images/stormblade/skill/weapon_tdl-01_kx06_-1183548700792331979.png"
+      }
+    ]
+  },
+  "verdant_oracle": {
+    "classKey": "verdant_oracle",
+    "className": "Verdant Oracle",
+    "classId": 5,
+    "defaultMonitoredBuffIds": [510072],
+    "derivations": [
+      {
+        "sourceSkillId": 1518,
+        "derivedSkillId": 21418,
+        "triggerBuffBaseId": 21418,
+        "derivedName": "Stag Charge",
+        "derivedImagePath": "/images/verdant_oracle/skill/weapon_fh-01_tg01_01_1821960491715709623.png"
+      },
+      {
+        "sourceSkillId": 1556,
+        "derivedSkillId": 1556,
+        "triggerBuffBaseId": 2202120,
+        "derivedName": "Bloomheal",
+        "derivedImagePath": "/images/verdant_oracle/skill/weapon_fh-01_ult02_-7338637867810334646.png"
+      }
+    ],
+    "skills": [
+      {
+        "skillId": 1501,
+        "name": "Vines' Embrace",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh_skill_atk_7207613408057060099.png"
+      },
+      {
+        "skillId": 1518,
+        "name": "Wild Bloom",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_tg01_2955740106852191547.png"
+      },
+      {
+        "skillId": 1519,
+        "name": "Feral Seed",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx09_-3065777601516650668.png"
+      },
+      {
+        "skillId": 1520,
+        "name": "Infusion",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx01_-777893832486412878.png"
+      },
+      {
+        "skillId": 21404,
+        "name": "Nourish",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx04_-3957964899996844983.png"
+      },
+      {
+        "skillId": 21406,
+        "name": "Grove Wish",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx02_-8523413017795422697.png"
+      },
+      {
+        "skillId": 1523,
+        "name": "Regen Pulse",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx05_-6309963487019551284.png"
+      },
+      {
+        "skillId": 1509,
+        "name": "Divine Circle Bloom",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_ult_5377337143300028519.png"
+      },
+      {
+        "skillId": 1556,
+        "name": "Bloomheal",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_ult02_-7338637867810334646.png"
+      },
+      {
+        "skillId": 20301,
+        "name": "Life Bloom",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh_skill_passive_-7134525519801678312.png"
+      },
+      {
+        "skillId": 1551,
+        "name": "Regen Bud: Wild Seed",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx03_8863116099667607434.png"
+      },
+      {
+        "skillId": 1560,
+        "name": "Regen Pulse (Pulse Retrospect)",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx05_-6309963487019551284.png"
+      },
+      {
+        "skillId": 1506,
+        "name": "Thorn Volley",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx06_-5972192814303085887.png"
+      },
+      {
+        "skillId": 1508,
+        "name": "Vine Snare",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx07_-6626360985139412137.png"
+      },
+      {
+        "skillId": 1516,
+        "name": "Nature Shield",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_kx08_-5368673168487156305.png"
+      },
+      {
+        "skillId": 1513,
+        "name": "Tidal Flow",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_tg02_-6034095740534119129.png"
+      },
+      {
+        "skillId": 1507,
+        "name": "Overgrowth",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_ult_01_-1160782108471453102.png"
+      },
+      {
+        "skillId": 1510,
+        "name": "Grove Hymn",
+        "imagePath": "/images/verdant_oracle/skill/weapon_fh-01_ult03_-922524136805580252.png"
+      }
+    ]
   }
 }
