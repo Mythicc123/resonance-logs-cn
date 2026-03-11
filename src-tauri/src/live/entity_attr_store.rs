@@ -1,5 +1,6 @@
 use crate::live::commands_models::PanelAttrState;
 use crate::live::opcodes_models::{AttrType, AttrValue, Entity};
+use blueprotobuf_lib::blueprotobuf::EActorState;
 use std::collections::HashMap;
 
 #[derive(Debug, Default)]
@@ -83,6 +84,12 @@ impl EntityAttrStore {
         self.attrs
             .get(&uid)
             .and_then(|entity_attrs| entity_attrs.get(&attr_type))
+    }
+
+    pub fn is_dead(&self, uid: i64) -> bool {
+        self.attr(uid, AttrType::ActorState)
+            .and_then(AttrValue::as_int)
+            .is_some_and(|value| value == i64::from(EActorState::ActorStateDead as i32))
     }
 
     pub fn hydrate_entity(&self, uid: i64, entity: &mut Entity) {

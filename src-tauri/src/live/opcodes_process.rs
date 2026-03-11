@@ -162,39 +162,6 @@ fn update_active_damage_time(encounter: &mut Encounter, timestamp_ms: u128) {
     encounter.last_combat_timestamp_ms = Some(timestamp_ms);
 }
 
-fn did_target_die(
-    is_dead_flag: Option<bool>,
-    hp_loss: u128,
-    shield_loss: u128,
-    prev_hp: Option<i64>,
-    max_hp: Option<i64>,
-) -> bool {
-    if let Some(true) = is_dead_flag {
-        return true;
-    }
-
-    let total_loss = hp_loss.saturating_add(shield_loss);
-    if total_loss == 0 {
-        return false;
-    }
-
-    if let Some(prev_hp_val) = prev_hp.filter(|hp| *hp > 0) {
-        let prev_hp_u128 = prev_hp_val as u128;
-        if total_loss >= prev_hp_u128 {
-            return true;
-        }
-    }
-
-    if let Some(max_hp_val) = max_hp.filter(|hp| *hp > 0) {
-        let max_hp_u128 = max_hp_val as u128;
-        if total_loss >= max_hp_u128 {
-            return true;
-        }
-    }
-
-    false
-}
-
 pub fn on_server_change(encounter: &mut Encounter) {
     info!("on server change");
     // Preserve entity identity and local player info; only reset combat state
@@ -918,19 +885,7 @@ pub fn process_aoi_sync_delta(
                 });
 
             // Check for death
-            let prev_hp_opt = attr_store
-                .attr(target_uid, AttrType::CurrentHp)
-                .and_then(AttrValue::as_int);
-            let max_hp_opt = attr_store
-                .attr(target_uid, AttrType::MaxHp)
-                .and_then(AttrValue::as_int);
-            let died = did_target_die(
-                sync_damage_info.is_dead,
-                hp_loss,
-                shield_loss,
-                prev_hp_opt,
-                max_hp_opt,
-            );
+            let died = attr_store.is_dead(target_uid);
 
             // Only record damage/taken stats if this event is not a heal
             if !was_heal_event {
@@ -1117,30 +1072,3 @@ fn process_monster_attrs(
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::did_target_die;
-
-    #[test]
-    fn uses_packet_flag_when_present() {
-        assert!(did_target_die(Some(true), 0, 0, None, None));
-        assert!(!did_target_die(Some(false), 0, 0, Some(10), Some(20)));
-    }
-
-    #[test]
-    fn hp_loss_must_exceed_previous_hp() {
-        assert!(!did_target_die(None, 50, 0, Some(100), Some(200)));
-        assert!(did_target_die(None, 150, 0, Some(100), Some(200)));
-    }
-
-    #[test]
-    fn falls_back_to_max_hp_when_needed() {
-        assert!(did_target_die(None, 1_500, 0, None, Some(1_000)));
-        assert!(!did_target_die(None, 500, 0, None, Some(1_000)));
-    }
-
-    #[test]
-    fn zero_loss_never_marks_death() {
-        assert!(!did_target_die(None, 0, 0, Some(1), Some(2)));
-    }
-}

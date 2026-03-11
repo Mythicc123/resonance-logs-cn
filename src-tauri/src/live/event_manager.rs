@@ -380,6 +380,7 @@ pub fn generate_live_data_payload(
                 name,
                 current_hp,
                 max_hp,
+                is_dead: attr_store.is_dead(uid),
             })
         })
         .collect();

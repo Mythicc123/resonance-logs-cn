@@ -12,7 +12,6 @@ use crate::live::skill_cd_monitor::SkillCdMonitor;
 use blueprotobuf_lib::blueprotobuf;
 use blueprotobuf_lib::blueprotobuf::EEntityType;
 use log::{info, warn};
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender, unbounded_channel};
 
@@ -58,8 +57,6 @@ pub struct AppState {
     pub event_manager: EventManager,
     /// Monitoring context for the local player.
     pub local_monitor: EntityMonitor,
-    /// A map of low HP bosses.
-    pub low_hp_bosses: HashMap<i64, u128>,
     /// Whether we've already handled the first scene change after startup.
     pub initial_scene_change_handled: bool,
     /// Event update rate in milliseconds (default: 200ms). Controls how often events are emitted to frontend.
@@ -130,7 +127,6 @@ impl AppState {
             encounter: Encounter::default(),
             event_manager: EventManager::new(),
             local_monitor: EntityMonitor::new(0),
-            low_hp_bosses: HashMap::new(),
             initial_scene_change_handled: false,
             event_update_rate_ms: 200,
             attr_store: EntityAttrStore::with_capacity(256),
@@ -460,8 +456,6 @@ impl AppStateManager {
             // Clear dead bosses tracking on server change
             state.event_manager.clear_dead_bosses();
         }
-
-        state.low_hp_bosses.clear();
         state.battle_state = BattleStateMachine::default();
     }
 
@@ -910,8 +904,6 @@ impl AppStateManager {
                 .event_manager
                 .emit_encounter_update(cleared_header, false);
         }
-
-        state.low_hp_bosses.clear();
         if is_manual {
             state.battle_state = BattleStateMachine::default();
         }
@@ -1025,32 +1017,12 @@ impl AppStateManager {
             &state.attr_store,
         );
 
-        let mut boss_deaths: Vec<(i64, String)> = Vec::new();
-        let current_time_ms = now_ms() as u128;
-        for boss in &mut payload.bosses {
-            let hp_percent = if let (Some(curr_hp), Some(max_hp)) = (boss.current_hp, boss.max_hp) {
-                if max_hp > 0 {
-                    curr_hp as f64 / max_hp as f64 * 100.0
-                } else {
-                    100.0
-                }
-            } else {
-                100.0
-            };
-
-            if hp_percent < 5.0 {
-                let entry = state
-                    .low_hp_bosses
-                    .entry(boss.uid)
-                    .or_insert(current_time_ms);
-                if current_time_ms.saturating_sub(*entry) >= 5_000 {
-                    boss_deaths.push((boss.uid, boss.name.clone()));
-                    boss.current_hp = Some(0);
-                }
-            } else {
-                state.low_hp_bosses.remove(&boss.uid);
-            }
-        }
+        let boss_deaths: Vec<(i64, String)> = payload
+            .bosses
+            .iter()
+            .filter(|boss| boss.is_dead)
+            .map(|boss| (boss.uid, boss.name.clone()))
+            .collect();
 
         state.event_manager.emit_live_data(payload);
 

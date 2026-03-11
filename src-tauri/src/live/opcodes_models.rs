@@ -54,7 +54,7 @@ pub enum AttrValue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AttrType {
     Name,
-    TeamId,
+    ActorState,
     GuildId,
     AttackPower,
     DefensePower,
@@ -126,7 +126,7 @@ impl AttrType {
     pub fn from_id(id: i32) -> Option<Self> {
         match id {
             attr_type::ATTR_NAME => Some(AttrType::Name),
-            attr_type::ATTR_TEAM_ID => Some(AttrType::TeamId),
+            attr_type::ATTR_ACTOR_STATE => Some(AttrType::ActorState),
             attr_type::ATTR_GUILD_ID => Some(AttrType::GuildId),
             attr_type::ATTR_ATTACK_POWER => Some(AttrType::AttackPower),
             attr_type::ATTR_DEFENSE_POWER => Some(AttrType::DefensePower),
@@ -197,7 +197,7 @@ impl AttrType {
     pub fn to_id(self) -> i32 {
         match self {
             AttrType::Name => attr_type::ATTR_NAME,
-            AttrType::TeamId => attr_type::ATTR_TEAM_ID,
+            AttrType::ActorState => attr_type::ATTR_ACTOR_STATE,
             AttrType::GuildId => attr_type::ATTR_GUILD_ID,
             AttrType::AttackPower => attr_type::ATTR_ATTACK_POWER,
             AttrType::DefensePower => attr_type::ATTR_DEFENSE_POWER,
@@ -456,7 +456,7 @@ pub mod attr_type {
     pub const ATTR_NAME: i32 = 0x01;
     pub const ATTR_ID: i32 = 0x0a;
     pub const ATTR_SCENE_BASIC_ID: i32 = 0x155; // Scene basic ID (341)
-    pub const ATTR_TEAM_ID: i32 = 0x0b; // Party/raid group number
+    pub const ATTR_ACTOR_STATE: i32 = 0x0b; // Actor state, see EActorState
     pub const ATTR_GUILD_ID: i32 = 0x1e; // Guild/clan ID
     pub const ATTR_ATTACK_POWER: i32 = 0x32; // Attack stat
     pub const ATTR_DEFENSE_POWER: i32 = 0x33; // Defense stat
@@ -728,7 +728,7 @@ mod tests {
     #[test]
     fn attr_type_id_conversion() {
         assert_eq!(AttrType::from_id(0x01), Some(AttrType::Name));
-        assert_eq!(AttrType::from_id(0x0b), Some(AttrType::TeamId));
+        assert_eq!(AttrType::from_id(0x0b), Some(AttrType::ActorState));
         assert_eq!(AttrType::from_id(0x32), Some(AttrType::AttackPower));
         assert_eq!(AttrType::from_id(0x33), Some(AttrType::DefensePower));
         assert_eq!(AttrType::from_id(0x34), Some(AttrType::StarLevel));
@@ -748,7 +748,7 @@ mod tests {
     #[test]
     fn attr_type_to_id_conversion() {
         assert_eq!(AttrType::Name.to_id(), 0x01);
-        assert_eq!(AttrType::TeamId.to_id(), 0x0b);
+        assert_eq!(AttrType::ActorState.to_id(), 0x0b);
         assert_eq!(AttrType::AttackPower.to_id(), 0x32);
         assert_eq!(AttrType::DefensePower.to_id(), 0x33);
         assert_eq!(AttrType::StarLevel.to_id(), 0x34);

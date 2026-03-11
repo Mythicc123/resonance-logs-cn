@@ -14,6 +14,8 @@ pub struct BossHealth {
     pub current_hp: Option<i64>,
     /// The maximum HP of the boss.
     pub max_hp: Option<i64>,
+    /// Whether the boss is in ActorStateDead.
+    pub is_dead: bool,
 }
 
 /// Represents the header information for an encounter.
