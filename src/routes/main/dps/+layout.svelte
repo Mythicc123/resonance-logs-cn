@@ -57,8 +57,8 @@
         <ActivityIcon class="w-5 h-5" />
       </div>
       <div>
-        <h1 class="text-xl font-bold text-foreground">DPS检测</h1>
-        <p class="text-sm text-muted-foreground">实时监测战斗数据和DPS统计</p>
+        <h1 class="text-xl font-bold text-foreground">DPS Detection</h1>
+        <p class="text-sm text-muted-foreground">Monitor combat data and DPS stats in real-time</p>
       </div>
     </div>
     
@@ -69,7 +69,7 @@
       onclick={toggleLiveWindow}
     >
       <PlayIcon class="w-4 h-4" />
-      <span>切换 DPS 窗口</span>
+      <span>Toggle DPS Window</span>
       <ExternalLinkIcon class="w-3.5 h-3.5 opacity-70" />
     </button>
   </div>
@@ -96,12 +96,12 @@
     {#if isBasePath}
       <!-- Default content when on base path - prompt to select a tab -->
       <div class="flex flex-col items-center justify-center py-12 text-center">
-        <p class="text-muted-foreground mb-4">请选择上方的选项卡查看详细设置</p>
+        <p class="text-muted-foreground mb-4">Select a tab above to view detailed settings</p>
         <a
           href={getDefaultTabPath()}
           class="px-4 py-2 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-sm font-medium transition-colors"
         >
-          查看历史记录
+          View History
         </a>
       </div>
     {:else}
