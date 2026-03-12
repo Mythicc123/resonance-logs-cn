@@ -137,7 +137,9 @@ pub struct EncounterRow {
     pub is_favorite: i32,
     /// Whether the encounter was manually reset (should not be uploaded).
     pub is_manually_reset: i32,
+    /// JSON-encoded array of boss names for fast list/filter queries.
     pub boss_names: Option<String>,
+    /// JSON-encoded array of player name entries for fast list/filter queries.
     pub player_names: Option<String>,
 }
 
@@ -163,6 +165,12 @@ pub struct NewEncounter {
     pub duration: f64,
     /// The accumulated active combat duration in seconds.
     pub active_combat_duration: Option<f64>,
+    /// Whether this encounter was manually reset by the user.
+    pub is_manually_reset: i32,
+    /// JSON-encoded array of boss names for fast list/filter queries.
+    pub boss_names: Option<String>,
+    /// JSON-encoded array of player name entries for fast list/filter queries.
+    pub player_names: Option<String>,
 }
 
 #[derive(Debug, Clone, Queryable, Identifiable, Associations, Serialize, Deserialize)]
