@@ -105,9 +105,9 @@
   // Tab state for encounter view
   let activeTab = $state<"damage" | "tanked" | "healing">("damage");
   const tabs: { key: "damage" | "tanked" | "healing"; label: string }[] = [
-    { key: "damage", label: "伤害" },
-    { key: "tanked", label: "承伤" },
-    { key: "healing", label: "治疗" },
+    { key: "damage", label: "Damage" },
+    { key: "tanked", label: "Tanked" },
+    { key: "healing", label: "Healing" },
   ];
 
   let encounterDurationSeconds = $derived.by(() => {
@@ -166,7 +166,7 @@
           isLocalPlayer: localUid !== null && entity.uid === localUid,
           className,
           classSpecName,
-          classDisplay: formatClassSpecLabel(className, classSpecName) || "未知职业",
+          classDisplay: formatClassSpecLabel(className, classSpecName) || "Unknown class",
           abilityScore: entity.abilityScore || 0,
           seasonStrength: entity.seasonStrength || 0,
           totalDmg: dps?.totalDmg ?? 0,
@@ -590,7 +590,7 @@
       backToHistory();
     } catch (e) {
       console.error("Failed to delete encounter", e);
-      alert("删除战斗记录失败：" + e);
+      alert("Failed to delete encounter: " + e);
       isDeleting = false;
       showDeleteModal = false;
     }
@@ -641,8 +641,8 @@
                 <button
                   onclick={backToHistory}
                   class="p-0.5 text-muted-foreground/70 hover:text-foreground transition-colors rounded shrink-0"
-                  title="返回历史"
-                  aria-label="返回历史"
+                  title="Back to History"
+                  aria-label="Back to History"
                 >
                   <svg
                     class="w-4 h-4"
@@ -660,7 +660,7 @@
                   </svg>
                 </button>
                 <h2 class="text-lg font-semibold text-foreground leading-tight">
-                  {encounter.sceneName ?? "未知场景"}
+                  {encounter.sceneName ?? "Unknown Scene"}
                 </h2>
               </div>
               {#if encounter.bosses.length > 0}
@@ -680,7 +680,7 @@
               <div class="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
                 <span>{new Date(encounter.startedAtMs).toLocaleString()}</span>
                 <span class="text-muted-foreground">•</span>
-                <span>时长：{formatEncounterDuration(encounterDurationSeconds)}</span>
+                <span>Duration: {formatEncounterDuration(encounterDurationSeconds)}</span>
                 <span class="text-muted-foreground">•</span>
                 <span class="text-[11px] text-muted-foreground">#{encounter.id}</span>
               </div>
@@ -693,8 +693,8 @@
                 <button
                   onclick={openEncounterOnWebsite}
                   class="inline-flex items-center justify-center rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors p-2"
-                  title="在 resonance-logs.com 打开该战斗记录"
-                  aria-label="在网站打开"
+                  title="Open on resonance-logs.com"
+                  aria-label="Open on website"
                 >
                   <svg
                     class="w-4 h-4"
@@ -718,11 +718,11 @@
                   ? 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20'
                   : 'bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground'}"
                 title={encounter.isFavorite
-                  ? "取消收藏"
-                  : "加入收藏"}
+                  ? "Unfavorite"
+                  : "Favorite"}
                 aria-label={encounter.isFavorite
-                  ? "取消收藏"
-                  : "加入收藏"}
+                  ? "Unfavorite"
+                  : "Favorite"}
               >
                 <svg
                   class="w-4 h-4"
@@ -742,8 +742,8 @@
               <button
                 onclick={openDeleteModal}
                 class="inline-flex items-center justify-center rounded bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors p-2"
-                title="删除该战斗记录"
-                aria-label="删除战斗记录"
+                title="Delete this encounter"
+                aria-label="Delete encounter"
               >
                 <svg
                   class="w-4 h-4"
@@ -786,7 +786,7 @@
             : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}"
           onclick={() => (overviewTargetUid = null)}
         >
-          总计
+          All Targets
         </button>
         {#each overviewTargets as target (target.targetUid)}
           <button
@@ -794,7 +794,7 @@
               ? 'bg-muted/40 text-foreground'
               : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}"
             onclick={() => (overviewTargetUid = target.targetUid)}
-            title={`目标 #${target.targetUid}`}
+            title={`Target #${target.targetUid}`}
           >
             {target.targetName}
           </button>
@@ -808,7 +808,7 @@
             <tr class="bg-popover/60">
               <th
                 class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-                >玩家</th
+                >Player</th
               >
               {#each visiblePlayerColumns as col (col.key)}
                 <th
@@ -840,8 +840,8 @@
                     <img
                       class="size-5 object-contain"
                       src={getClassIcon(p.className)}
-                      alt="职业图标"
-                      {@attach tooltip(() => p.classDisplay || "未知职业")}
+                      alt="Class icon"
+                      {@attach tooltip(() => p.classDisplay || "Unknown class")}
                     />
                     <span
                       class="truncate"
@@ -883,9 +883,9 @@
                         isLocalPlayer: p.isLocalPlayer,
                       })}
                       {#if p.isLocalPlayer}
-                        <span class="ml-1 text-[oklch(0.65_0.1_250)]"
-                          >（你）</span
-                        >
+                        <span class="ml-1 text-[oklch(0.65_0.1_250)]">
+                          (You)
+                        </span>
                       {/if}
                     </span>
                   </div>
@@ -934,7 +934,7 @@
         <button
           onclick={backToEncounter}
           class="p-1.5 text-neutral-400 hover:text-neutral-200 transition-colors rounded hover:bg-neutral-800"
-          aria-label="返回战斗概览"
+          aria-label="Back to encounter overview"
         >
           <svg
             class="w-5 h-5"
@@ -952,7 +952,7 @@
           </svg>
         </button>
         <div>
-          <h2 class="text-xl font-semibold text-foreground">技能明细</h2>
+          <h2 class="text-xl font-semibold text-foreground">Skill Breakdown</h2>
           <div class="text-sm text-neutral-400">
             Player: {getDisplayName({
               player: {
@@ -974,10 +974,10 @@
     {#if skillType === "heal"}
       <div class="mb-3 rounded border border-border/60 bg-card/30 p-3">
         <div class="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-          治疗目标分布
+          Heal Target Distribution
         </div>
         {#if healTargetSummary.length === 0}
-          <div class="text-sm text-muted-foreground">暂无目标治疗数据</div>
+          <div class="text-sm text-muted-foreground">No heal target data</div>
         {:else}
           <div class="space-y-1.5">
             {#each healTargetSummary as target (target.targetUid)}
@@ -1005,7 +1005,7 @@
           <tr class="bg-popover/60">
             <th
               class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
-              >技能</th
+              >Skill</th
             >
             {#each visibleSkillColumns as col (col.key)}
               <th
@@ -1102,7 +1102,7 @@
       </table>
     </div>
   {:else}
-    <div class="text-neutral-400">加载中...</div>
+    <div class="text-neutral-400">Loading...</div>
   {/if}
 </div>
 
@@ -1118,7 +1118,7 @@
     <button
       class="absolute inset-0 bg-black/60 backdrop-blur-sm"
       onclick={closeDeleteModal}
-      aria-label="关闭弹窗"
+      aria-label="Close dialog"
     ></button>
 
     <!-- Modal Content -->
