@@ -777,7 +777,7 @@
           {#if expandedSections.classSpecColors}
             <div class="px-4 pb-4 space-y-3">
               <p class="text-xs text-muted-foreground">
-                自定义职业或专精的颜色。选择“专精颜色”可在检测到专精时显示特定颜色。
+                自定义职业或专精的颜色。选择"专精颜色"可在检测到专精时显示特定颜色。
               </p>
 
               <!-- Tab buttons for Class/Spec -->
@@ -1293,7 +1293,7 @@
                   {#if SETTINGS.accessibility.state.backgroundImageMode === "contain"}
                     <SettingsColorAlpha
                       label="留白填充颜色"
-                      description="当图片以“包含”方式适配时，周围留白的背景色"
+                      description="当图片以"包含"方式适配时，周围留白的背景色"
                       value={SETTINGS.accessibility.state
                         .backgroundImageContainColor}
                       oninput={(value: string) => {
@@ -1379,7 +1379,7 @@
                   />
                   {#if SETTINGS.accessibility.state.customFontSansName}
                     <p class="text-xs text-muted-foreground pl-3">
-                      Loaded: {SETTINGS.accessibility.state.customFontSansName}
+                      已加载：{SETTINGS.accessibility.state.customFontSansName}
                     </p>
                   {/if}
                 {/if}
@@ -1434,7 +1434,7 @@
                   />
                   {#if SETTINGS.accessibility.state.customFontMonoName}
                     <p class="text-xs text-muted-foreground pl-3">
-                      Loaded: {SETTINGS.accessibility.state.customFontMonoName}
+                      已加载：{SETTINGS.accessibility.state.customFontMonoName}
                     </p>
                   {/if}
                 {/if}
@@ -1471,8 +1471,8 @@
                 bind:checked={SETTINGS.accessibility.state.clickthrough}
                 label="点击穿透模式"
                 description={SETTINGS.accessibility.state.clickthrough
-                  ? "Clickthrough Enabled - Mouse clicks pass through window"
-                  : "Enable Clickthrough Mode"}
+                  ? "穿透已启用 - 鼠标点击将穿透窗口"
+                  : "启用点击穿透模式"}
               />
             </div>
           {/if}
@@ -1558,7 +1558,7 @@
                       max={20}
                       step={1}
                       label="标签字体大小"
-                      description="“计时”标签字体大小（0=隐藏）"
+                      description=""计时"标签字体大小（0=隐藏）"
                       unit="px"
                     />
                     <SettingsSlider
@@ -1786,7 +1786,7 @@
                       max={20}
                       step={1}
                       label="标签字体大小"
-                      description="“T.DMG”标签字体大小"
+                      description=""T.DMG"标签字体大小"
                       unit="px"
                     />
                     <SettingsSlider
@@ -1826,7 +1826,7 @@
                       max={20}
                       step={1}
                       label="标签字体大小"
-                      description="“T.DPS”标签字体大小"
+                      description=""T.DPS"标签字体大小"
                       unit="px"
                     />
                     <SettingsSlider
@@ -1866,7 +1866,7 @@
                       max={20}
                       step={1}
                       label="标签字体大小"
-                      description="“BOSS”标签字体大小"
+                      description=""BOSS"标签字体大小"
                       unit="px"
                     />
                     <SettingsSlider
