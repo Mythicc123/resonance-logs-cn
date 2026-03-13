@@ -58,7 +58,7 @@ export function normalizeNameDisplaySetting(
  * characters. This strips everything from the last " - " onward if the
  * trailing part contains CJK characters, returning just "Kuumi".
  */
-function stripCNSuffix(name: string): string {
+export function stripCNSuffix(name: string): string {
   const separatorIdx = name.lastIndexOf(" - ");
   if (separatorIdx === -1) return name;
   const suffix = name.slice(separatorIdx + 3);
