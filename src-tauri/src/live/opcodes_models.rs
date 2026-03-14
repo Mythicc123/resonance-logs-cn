@@ -645,9 +645,12 @@ pub mod class {
 
 impl Entity {
     /// Assign monster type id and update display name from mapping if available.
+    /// Prioritizes English boss names from MONSTER_NAMES_BOSS, falling back to MONSTER_NAMES.
     pub fn set_monster_type(&mut self, monster_id: i32) {
         self.monster_type_id = Some(monster_id);
-        if let Some(name) = MONSTER_NAMES.get(&monster_id.to_string()) {
+        let id_str = monster_id.to_string();
+        // Prioritize English translations from boss names, fall back to general monster names
+        if let Some(name) = MONSTER_NAMES_BOSS.get(&id_str).or_else(|| MONSTER_NAMES.get(&id_str)) {
             self.name = name.clone();
         }
     }
