@@ -1,8 +1,8 @@
 {
     "$schema": "https://schema.tauri.app/config/2",
-    "productName": "resonance-logs-cn",
-    "version": "0.0.10",
-    "identifier": "com.resonance-logs-cn",
+    "productName": "resonance-logs-en",
+    "version": "0.1.0",
+    "identifier": "com.resonance-logs-en",
     "build": {
         "beforeDevCommand": "npm run dev:stop-windivert",
         "beforeBuildCommand": "npm run build:stop-windivert",
@@ -12,7 +12,7 @@
     "app": {
         "windows": [
             {
-                "title": "Resonance Logs CN - Live",
+                "title": "Resonance Logs EN - Live",
                 "label": "live",
                 "url": "live",
                 "shadow": false,
@@ -24,7 +24,7 @@
                 "skipTaskbar": true
             },
             {
-                "title": "Resonance Logs CN - Main 0.0.10",
+                "title": "Resonance Logs EN - Main 0.1.0",
                 "label": "main",
                 "url": "main",
                 "width": 1200,
@@ -78,7 +78,7 @@
             "active": true,
             "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZGMjJENkQ3QUY1NUJCNzIKUldSeXUxV3YxOVlpYnpIR1ptclNyTlVwMVNhdUVjTHkzbFRXa2wxMmRnS3p2OTdYK291VE5WU1IK",
             "endpoints": [
-                "https://github.com/Mythicc123/resonance-logs-cn/releases/latest/download/latest.json"
+                "https://github.com/Caseclosedx3/cn-reso-logs-to-en/releases/latest/download/latest.json"
             ],
             "dialog": true,
             "windows": {

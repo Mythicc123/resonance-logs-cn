@@ -7,7 +7,7 @@
 export const historyDpsPlayerColumns = [
   { key: 'totalDmg', header: 'DMG', label: 'DMG', description: "Total damage dealt by the player", format: (v: number) => v.toLocaleString() },
   { key: 'dps', header: 'DPS', label: 'DPS', description: "Damage per second dealt by the player", format: (v: number) => v.toFixed(1) },
-  { key: 'tdps', header: 'True DPS', label: 'True DPS', description: "True DPS based on global active combat time", format: (v: number) => v.toFixed(1) },
+  { key: 'tdps', header: 'TDPS', label: 'TDPS', description: "True DPS based on global active combat time", format: (v: number) => v.toFixed(1) },
   { key: 'bossDmg', header: 'Boss DMG', label: 'Boss DMG', description: "Damage dealt to the boss by the player", format: (v: number) => v.toLocaleString() },
   { key: 'bossDps', header: 'Boss DPS', label: 'Boss DPS', description: "Boss damage per second dealt by the player", format: (v: number) => v.toFixed(1) },
   { key: 'dmgPct', header: 'DMG%', label: 'DMG%', description: "Player's share of total damage", format: (v: number) => v.toFixed(1) + '%' },
