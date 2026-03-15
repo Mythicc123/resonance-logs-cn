@@ -98,16 +98,29 @@ export type FightResourceUpdatePayload = {
 };
 
 export type BuffUpdateState = {
-  buffUuid: number;
   baseId: number;
   layer: number;
   durationMs: number;
   createTimeMs: number;
-  sourceConfigId: number;
 };
 
 export type BuffUpdatePayload = {
   buffs: BuffUpdateState[];
+};
+
+export type BossBuffUpdatePayload = {
+  bossUid: number;
+  buffs: BuffUpdateState[];
+};
+
+export type HateEntry = {
+  uid: number;
+  hateVal: number;
+};
+
+export type HateListUpdatePayload = {
+  bossUid: number;
+  entries: HateEntry[];
 };
 
 export type CounterUpdateState = {
@@ -172,10 +185,6 @@ export type LiveDataPayload = {
   entities: RawEntityData[];
 };
 
-export type BossDeathPayload = {
-  bossName: string;
-};
-
 export type SceneChangePayload = {
   sceneName: string;
 };
@@ -186,9 +195,6 @@ export const onEncounterUpdate = (handler: (event: Event<EncounterUpdatePayload>
 
 export const onLiveData = (handler: (event: Event<LiveDataPayload>) => void): Promise<UnlistenFn> =>
   listen<LiveDataPayload>("live-data", handler);
-
-export const onBossDeath = (handler: (event: Event<BossDeathPayload>) => void): Promise<UnlistenFn> =>
-  listen<BossDeathPayload>("boss-death", handler);
 
 export const onSceneChange = (handler: (event: Event<SceneChangePayload>) => void): Promise<UnlistenFn> =>
   listen<SceneChangePayload>("scene-change", handler);
@@ -212,6 +218,16 @@ export const onFightResUpdate = (
 export const onBuffUpdate = (
   handler: (event: Event<BuffUpdatePayload>) => void
 ): Promise<UnlistenFn> => listen<BuffUpdatePayload>("buff-update", handler);
+
+export const onBossBuffUpdate = (
+  handler: (event: Event<BossBuffUpdatePayload>) => void
+): Promise<UnlistenFn> =>
+  listen<BossBuffUpdatePayload>("boss-buff-update", handler);
+
+export const onHateListUpdate = (
+  handler: (event: Event<HateListUpdatePayload>) => void
+): Promise<UnlistenFn> =>
+  listen<HateListUpdatePayload>("hate-list-update", handler);
 
 export const onBuffCounterUpdate = (
   handler: (event: Event<BuffCounterUpdatePayload>) => void

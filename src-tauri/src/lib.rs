@@ -29,6 +29,8 @@ pub const WINDOW_LIVE_LABEL: &str = "live";
 pub const WINDOW_MAIN_LABEL: &str = "main";
 /// The label for the unified game overlay window.
 pub const WINDOW_GAME_OVERLAY_LABEL: &str = "game-overlay";
+/// The label for the monster overlay window.
+pub const WINDOW_MONSTER_OVERLAY_LABEL: &str = "monster-overlay";
 
 /// Keeps the non-blocking tracing appender worker alive for the lifetime of the process.
 /// If this guard is dropped, file logging may stop flushing.
@@ -56,9 +58,9 @@ pub fn run() {
             live::commands::set_event_update_rate_ms,
             live::commands::set_monitored_skills,
             live::commands::set_monitored_buffs,
+            live::commands::set_boss_monitored_buffs,
             live::commands::set_monitored_panel_attrs,
             live::commands::set_monitor_all_buff,
-            live::commands::set_buff_priority,
             live::commands::set_buff_counter_rules,
             database::commands::get_recent_encounters,
             database::commands::get_unique_scene_names,

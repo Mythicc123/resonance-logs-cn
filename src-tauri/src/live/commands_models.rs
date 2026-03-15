@@ -14,6 +14,8 @@ pub struct BossHealth {
     pub current_hp: Option<i64>,
     /// The maximum HP of the boss.
     pub max_hp: Option<i64>,
+    /// Whether the boss is in ActorStateDead.
+    pub is_dead: bool,
 }
 
 /// Represents the header information for an encounter.
@@ -234,18 +236,37 @@ pub struct SkillCdState {
 #[derive(specta::Type, serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BuffUpdateState {
-    pub buff_uuid: i32,
     pub base_id: i32,
     pub layer: i32,
     pub duration_ms: i32,
     pub create_time_ms: i64,
-    pub source_config_id: i32,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BuffUpdatePayload {
     pub buffs: Vec<BuffUpdateState>,
+}
+
+#[derive(serde::Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BossBuffUpdatePayload {
+    pub boss_uid: i64,
+    pub buffs: Vec<BuffUpdateState>,
+}
+
+#[derive(specta::Type, serde::Serialize, serde::Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct HateEntry {
+    pub uid: i64,
+    pub hate_val: u32,
+}
+
+#[derive(serde::Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct HateListUpdatePayload {
+    pub boss_uid: i64,
+    pub entries: Vec<HateEntry>,
 }
 
 #[derive(specta::Type, serde::Serialize, serde::Deserialize, Debug, Clone)]

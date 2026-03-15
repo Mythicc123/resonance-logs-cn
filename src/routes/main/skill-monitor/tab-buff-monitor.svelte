@@ -1,6 +1,6 @@
 <script lang="ts">
   import ChevronDown from "virtual:icons/lucide/chevron-down";
-  import BuffSearchResultGrid from "./BuffSearchResultGrid.svelte";
+  import BuffSearchResultGrid from "$lib/components/BuffSearchResultGrid.svelte";
   import type {
     BuffCategoryDefinition,
     BuffCategoryKey,
@@ -13,6 +13,8 @@
     TextBuffPanelDisplayMode,
     TextBuffPanelStyle,
   } from "$lib/settings-store";
+
+  type BuffGroupUpdateHandler = (updater: (curr: BuffGroup) => BuffGroup) => void;
 
   interface Props {
     buffSearch: string;
@@ -157,9 +159,29 @@
     togglePriorityInGroup,
     moveGroupPriority,
   }: Props = $props();
+
+  function buffSearchStatusLabel(buffId: number): string | null {
+    return isBuffSelected(buffId) ? "Selected" : null;
+  }
+
+  function buffAliasStatusLabel(buffId: number): string | null {
+    if (buffAliasEditingBuffId === buffId) return "Editing";
+    return configuredBuffAliasIds.includes(buffId) ? "Has Alias" : null;
+  }
+
+  function getFilteredGlobalPrioritySearchResults(): BuffNameInfo[] {
+    const ids = new Set<number>();
+    return globalPrioritySearchResults.filter((item) => {
+      if (ids.has(item.baseId)) return false;
+      if (!expandedSelectedBuffIds.includes(item.baseId)) return false;
+      if (buffPriorityIds.includes(item.baseId)) return false;
+      ids.add(item.baseId);
+      return true;
+    });
+  }
 </script>
 
-{#snippet buffGroupLayoutControls(group, onUpdate)}
+{#snippet buffGroupLayoutControls(group: BuffGroup, onUpdate: BuffGroupUpdateHandler)}
   <div class="grid grid-cols-2 gap-3">
     <label class="text-xs text-muted-foreground">
       Icon Size: {group.iconSize}px
@@ -171,7 +193,7 @@
         step="1"
         value={group.iconSize}
         oninput={(event) =>
-          onUpdate((curr) => ({
+          onUpdate((curr: BuffGroup) => ({
             ...curr,
             iconSize: Number((event.currentTarget as HTMLInputElement).value),
           }))}
@@ -187,7 +209,7 @@
         step="1"
         value={group.columns}
         oninput={(event) =>
-          onUpdate((curr) => ({
+          onUpdate((curr: BuffGroup) => ({
             ...curr,
             columns: Number((event.currentTarget as HTMLInputElement).value),
           }))}
@@ -203,7 +225,7 @@
         step="1"
         value={group.rows}
         oninput={(event) =>
-          onUpdate((curr) => ({
+          onUpdate((curr: BuffGroup) => ({
             ...curr,
             rows: Number((event.currentTarget as HTMLInputElement).value),
           }))}
@@ -219,7 +241,7 @@
         step="1"
         value={group.gap}
         oninput={(event) =>
-          onUpdate((curr) => ({
+          onUpdate((curr: BuffGroup) => ({
             ...curr,
             gap: Number((event.currentTarget as HTMLInputElement).value),
           }))}
@@ -232,7 +254,7 @@
         type="checkbox"
         checked={group.showName}
         onchange={(event) =>
-          onUpdate((curr) => ({
+          onUpdate((curr: BuffGroup) => ({
             ...curr,
             showName: (event.currentTarget as HTMLInputElement).checked,
           }))}
@@ -244,7 +266,7 @@
         type="checkbox"
         checked={group.showTime}
         onchange={(event) =>
-          onUpdate((curr) => ({
+          onUpdate((curr: BuffGroup) => ({
             ...curr,
             showTime: (event.currentTarget as HTMLInputElement).checked,
           }))}
@@ -256,7 +278,7 @@
         type="checkbox"
         checked={group.showLayer}
         onchange={(event) =>
-          onUpdate((curr) => ({
+          onUpdate((curr: BuffGroup) => ({
             ...curr,
             showLayer: (event.currentTarget as HTMLInputElement).checked,
           }))}
@@ -300,6 +322,7 @@
         {availableBuffMap}
         onSelect={toggleBuff}
         isSelected={isBuffSelected}
+        getStatusLabel={buffSearchStatusLabel}
         emptyMessage="No matching Buffs found"
       />
     {:else}
@@ -379,8 +402,8 @@
               {availableBuffMap}
               onSelect={(buffId) => setBuffAliasEditingBuffId(buffId)}
               isSelected={(buffId) => buffAliasEditingBuffId === buffId}
+              getStatusLabel={buffAliasStatusLabel}
               emptyMessage="No matching Buffs found"
-              limit={20}
             />
 
             {#if buffAliasEditingBuffId !== null}
@@ -604,24 +627,14 @@
         value={globalPrioritySearch}
         oninput={(event) => setGlobalPrioritySearch((event.currentTarget as HTMLInputElement).value)}
       />
-      {#if globalPrioritySearch.trim().length > 0 && globalPrioritySearchResults.length > 0}
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(50px,1fr))] gap-2">
-          {#each globalPrioritySearchResults as item (item.baseId)}
-            {@const iconBuff = availableBuffMap.get(item.baseId)}
-            {#if expandedSelectedBuffIds.includes(item.baseId) && !buffPriorityIds.includes(item.baseId)}
-              <button
-                type="button"
-                class="rounded border border-border/60 bg-muted/20 hover:bg-muted/40 transition-colors p-1"
-                title={item.name}
-                onclick={() => toggleGlobalPriority(item.baseId)}
-              >
-                {#if iconBuff}
-                  <img src={`/images/buff/${iconBuff.spriteFile}`} alt={item.name} class="w-full h-10 object-contain" />
-                {/if}
-              </button>
-            {/if}
-          {/each}
-        </div>
+      {#if globalPrioritySearch.trim().length > 0}
+        <BuffSearchResultGrid
+          items={getFilteredGlobalPrioritySearchResults()}
+          {availableBuffMap}
+          onSelect={toggleGlobalPriority}
+          emptyMessage="No Buffs available to add to global priority"
+          minColumnWidth={180}
+        />
       {/if}
       <div class="space-y-1">
         {#each buffPriorityIds as buffId, idx (buffId)}
@@ -795,8 +808,7 @@
                   {availableBuffMap}
                   onSelect={(buffId) => toggleBuffInGroup(group.id, buffId)}
                   emptyMessage="No Buffs available to add"
-                  limit={40}
-                  minColumnWidth={50}
+                  minColumnWidth={180}
                 />
               {/if}
 
@@ -853,8 +865,7 @@
                     {availableBuffMap}
                     onSelect={(buffId) => togglePriorityInGroup(group.id, buffId)}
                     emptyMessage="No Buffs available to add to priority"
-                    limit={40}
-                    minColumnWidth={50}
+                    minColumnWidth={180}
                   />
                 {/if}
                 {#each getGroupPriorityIds(group) as buffId, idx (buffId)}
@@ -871,7 +882,7 @@
               </div>
               <div class="space-y-2">
                 <div class="text-xs text-muted-foreground">Group Layout</div>
-                {@render buffGroupLayoutControls(group, (updater) => updateBuffGroup(group.id, updater))}
+                {@render buffGroupLayoutControls(group, (updater: (curr: BuffGroup) => BuffGroup) => updateBuffGroup(group.id, updater))}
               </div>
             </div>
           </div>

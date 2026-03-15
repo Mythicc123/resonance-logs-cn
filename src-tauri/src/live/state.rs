@@ -1,5 +1,5 @@
 use crate::database::{EncounterMetadata, PlayerNameEntry, now_ms, save_encounter};
-use crate::live::buff_monitor::BuffMonitor;
+use crate::live::buff_monitor::{BossBuffMonitors, BuffMonitor};
 use crate::live::commands_models::{
     CounterUpdateState, FightResourceState, PanelAttrState, SkillCdState,
 };
@@ -12,7 +12,6 @@ use crate::live::skill_cd_monitor::SkillCdMonitor;
 use blueprotobuf_lib::blueprotobuf;
 use blueprotobuf_lib::blueprotobuf::EEntityType;
 use log::{info, warn};
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender, unbounded_channel};
 
@@ -39,8 +38,6 @@ pub enum StateEvent {
     SyncToMeDeltaInfo(blueprotobuf::SyncToMeDeltaInfo),
     /// A sync near delta info event.
     SyncNearDeltaInfo(blueprotobuf::SyncNearDeltaInfo),
-    /// A notify revive user event.
-    NotifyReviveUser(blueprotobuf::NotifyReviveUser),
     /// A reset encounter event. Contains whether this was a manual reset by the user.
     #[allow(dead_code)]
     ResetEncounter {
@@ -58,8 +55,8 @@ pub struct AppState {
     pub event_manager: EventManager,
     /// Monitoring context for the local player.
     pub local_monitor: EntityMonitor,
-    /// A map of low HP bosses.
-    pub low_hp_bosses: HashMap<i64, u128>,
+    /// Boss buff monitoring state and configuration.
+    pub boss_buff_monitors: BossBuffMonitors,
     /// Whether we've already handled the first scene change after startup.
     pub initial_scene_change_handled: bool,
     /// Event update rate in milliseconds (default: 200ms). Controls how often events are emitted to frontend.
@@ -99,8 +96,6 @@ impl EntityMonitor {
 
     fn clear_runtime_state(&mut self) {
         self.buff_monitor.active_buffs.clear();
-        self.buff_monitor.ordered_buff_uuids.clear();
-        self.buff_monitor.buff_order_dirty = false;
         self.skill_cd_monitor.skill_cd_map.clear();
         self.fight_res_state = None;
         self.counter_tracker.reset_counts();
@@ -113,10 +108,13 @@ pub enum LiveControlCommand {
     TogglePauseEncounter,
     SetEventUpdateRateMs(u64),
     SetMonitoredBuffs(Vec<i32>),
+    SetBossMonitoredBuffs {
+        global_ids: Vec<i32>,
+        self_applied_ids: Vec<i32>,
+    },
     SetMonitoredPanelAttrs(Vec<i32>),
     SetMonitoredSkills(Vec<i32>),
     SetMonitorAllBuff(bool),
-    SetBuffPriority(Vec<i32>),
     SetBuffCounterRules(Vec<CounterRule>),
 }
 
@@ -130,7 +128,7 @@ impl AppState {
             encounter: Encounter::default(),
             event_manager: EventManager::new(),
             local_monitor: EntityMonitor::new(0),
-            low_hp_bosses: HashMap::new(),
+            boss_buff_monitors: BossBuffMonitors::new(),
             initial_scene_change_handled: false,
             event_update_rate_ms: 200,
             attr_store: EntityAttrStore::with_capacity(256),
@@ -237,7 +235,19 @@ fn build_encounter_metadata(
 
 fn persist_and_save_encounter(state: &mut AppState, is_manual: bool, source: &str) {
     hydrate_entities_from_attr_store(state);
-    let defeated = state.event_manager.take_dead_bosses();
+    let defeated: Vec<String> = state
+        .encounter
+        .entity_uid_to_entity
+        .values()
+        .filter(|entity| entity.is_boss())
+        .filter_map(|entity| {
+            if entity.name.is_empty() {
+                None
+            } else {
+                Some(entity.name.clone())
+            }
+        })
+        .collect();
     let player_names = collect_player_names(&state.encounter);
     let metadata = build_encounter_metadata(&state.encounter, defeated, player_names, is_manual);
 
@@ -378,9 +388,6 @@ impl AppStateManager {
                 // Note: Player names are automatically stored in the database via UpsertEntity tasks
                 // No need to maintain a separate cache anymore
             }
-            StateEvent::NotifyReviveUser(data) => {
-                self.process_notify_revive_user(state, data);
-            }
             StateEvent::ResetEncounter { is_manual } => {
                 state.pending_auto_reset = None;
                 self.reset_encounter(state, is_manual);
@@ -402,7 +409,16 @@ impl AppStateManager {
                 state.event_update_rate_ms = rate_ms;
             }
             LiveControlCommand::SetMonitoredBuffs(buff_base_ids) => {
-                state.local_monitor.buff_monitor.monitored_buff_ids = buff_base_ids;
+                state.local_monitor.buff_monitor.monitored_buff_ids =
+                    buff_base_ids.into_iter().collect();
+            }
+            LiveControlCommand::SetBossMonitoredBuffs {
+                global_ids,
+                self_applied_ids,
+            } => {
+                state
+                    .boss_buff_monitors
+                    .set_config(global_ids, self_applied_ids);
             }
             LiveControlCommand::SetMonitoredPanelAttrs(attr_ids) => {
                 state.local_monitor.monitored_panel_attr_ids = attr_ids;
@@ -437,10 +453,6 @@ impl AppStateManager {
             LiveControlCommand::SetMonitorAllBuff(monitor_all_buff) => {
                 state.local_monitor.buff_monitor.monitor_all_buff = monitor_all_buff;
             }
-            LiveControlCommand::SetBuffPriority(priority_buff_ids) => {
-                state.local_monitor.buff_monitor.priority_buff_ids = priority_buff_ids;
-                state.local_monitor.buff_monitor.buff_order_dirty = true;
-            }
             LiveControlCommand::SetBuffCounterRules(rules) => {
                 state.local_monitor.counter_tracker.set_rules(rules);
             }
@@ -457,11 +469,7 @@ impl AppStateManager {
         // Emit encounter reset event
         if state.event_manager.should_emit_events() {
             state.event_manager.emit_encounter_reset();
-            // Clear dead bosses tracking on server change
-            state.event_manager.clear_dead_bosses();
         }
-
-        state.low_hp_bosses.clear();
         state.battle_state = BattleStateMachine::default();
     }
 
@@ -485,20 +493,6 @@ impl AppStateManager {
 
         if let Some(scene_id) = parsed.scene_id {
             let scene_name = scene_names::lookup(scene_id);
-            let prev_scene = state.encounter.current_scene_id;
-
-            // If we have an active encounter and the scene actually changed, end it so we don't leave zombie rows
-            if prev_scene.map(|id| id != scene_id).unwrap_or(false)
-                && state.encounter.time_fight_start_ms != 0
-            {
-                info!(
-                    "Scene changed from {:?} to {}; checking segment logic",
-                    prev_scene, scene_id
-                );
-                state.pending_auto_reset = None;
-                info!("Scene changed: ending active encounter");
-                self.reset_encounter(state, false);
-            }
 
             // Update encounter with scene info
             state.encounter.current_scene_id = Some(scene_id);
@@ -543,8 +537,14 @@ impl AppStateManager {
     ) {
         use crate::live::opcodes_process::process_sync_container_data;
 
+        persist_and_save_encounter(state, false, "container_data_resync");
+        state.encounter.entity_uid_to_entity.clear();
         state.attr_store.clear_all_entities();
+        state.encounter.reset_combat_state();
         state.local_monitor.clear_runtime_state();
+        state.boss_buff_monitors.clear();
+        state.battle_state = BattleStateMachine::default();
+        state.pending_auto_reset = None;
 
         if process_sync_container_data(
             &mut state.encounter,
@@ -716,10 +716,11 @@ impl AppStateManager {
         }
 
         if let Some(raw_bytes) = result.buff_effect_bytes {
-            let buff_process_result = state
-                .local_monitor
-                .buff_monitor
-                .process_buff_effect_bytes(&raw_bytes, &mut state.server_clock_offset);
+            let buff_process_result = state.local_monitor.buff_monitor.process_buff_effect_bytes(
+                &raw_bytes,
+                &mut state.server_clock_offset,
+                state.encounter.local_player_uid,
+            );
             if let Some(payload) = buff_process_result.update_payload {
                 state.event_manager.emit_buff_update(payload);
             }
@@ -760,7 +761,10 @@ impl AppStateManager {
         }
 
         let mut counter_dirty = false;
-        for aoi_sync_delta in sync_near_delta_info.delta_infos {
+        for mut aoi_sync_delta in sync_near_delta_info.delta_infos {
+            let target_uid = aoi_sync_delta.uuid.map(|uuid| uuid >> 16);
+            let buff_bytes = aoi_sync_delta.buff_effect.take();
+
             // Missing fields are normal, no need to log
             if let Some(events) =
                 process_aoi_sync_delta(&mut state.encounter, &mut state.attr_store, aoi_sync_delta)
@@ -771,6 +775,29 @@ impl AppStateManager {
                         event.target_uid,
                         state.encounter.local_player_uid,
                     );
+                }
+            }
+
+            if let (Some(target_uid), Some(raw_bytes)) = (target_uid, buff_bytes) {
+                let is_boss = state
+                    .encounter
+                    .entity_uid_to_entity
+                    .get(&target_uid)
+                    .map(|entity| entity.is_boss())
+                    .unwrap_or(false);
+                if is_boss {
+                    let local_player_uid = state.encounter.local_player_uid;
+                    let monitor = state.boss_buff_monitors.monitor_for(target_uid);
+                    let buff_process_result = monitor.process_buff_effect_bytes(
+                        &raw_bytes,
+                        &mut state.server_clock_offset,
+                        local_player_uid,
+                    );
+                    if let Some(payload) = buff_process_result.update_payload {
+                        state
+                            .event_manager
+                            .emit_boss_buff_update(target_uid, payload);
+                    }
                 }
             }
         }
@@ -810,17 +837,6 @@ impl AppStateManager {
             );
         }
         state.pending_auto_reset = None;
-    }
-
-    fn process_notify_revive_user(
-        &self,
-        state: &mut AppState,
-        notify: blueprotobuf::NotifyReviveUser,
-    ) {
-        use crate::live::opcodes_process::process_notify_revive_user;
-        if process_notify_revive_user(&mut state.encounter, notify).is_none() {
-            warn!("Error processing NotifyReviveUser.. ignoring.");
-        }
     }
 
     fn apply_reset_reason(&self, state: &mut AppState, reason: EncounterResetReason) {
@@ -891,8 +907,6 @@ impl AppStateManager {
 
         if state.event_manager.should_emit_events() {
             state.event_manager.emit_encounter_reset();
-            // Clear dead bosses tracking on reset
-            state.event_manager.clear_dead_bosses();
 
             // Emit an encounter update with cleared state so frontend updates immediately
             use crate::live::commands_models::HeaderInfo;
@@ -910,8 +924,6 @@ impl AppStateManager {
                 .event_manager
                 .emit_encounter_update(cleared_header, false);
         }
-
-        state.low_hp_bosses.clear();
         if is_manual {
             state.battle_state = BattleStateMachine::default();
         }
@@ -992,6 +1004,17 @@ impl AppStateManager {
         self.send_control(LiveControlCommand::SetMonitoredBuffs(buff_base_ids))
     }
 
+    pub fn set_boss_monitored_buffs(
+        &self,
+        global_ids: Vec<i32>,
+        self_applied_ids: Vec<i32>,
+    ) -> Result<(), String> {
+        self.send_control(LiveControlCommand::SetBossMonitoredBuffs {
+            global_ids,
+            self_applied_ids,
+        })
+    }
+
     pub fn set_monitored_panel_attrs(&self, attr_ids: Vec<i32>) -> Result<(), String> {
         self.send_control(LiveControlCommand::SetMonitoredPanelAttrs(attr_ids))
     }
@@ -1002,10 +1025,6 @@ impl AppStateManager {
 
     pub fn set_monitor_all_buff(&self, monitor_all_buff: bool) -> Result<(), String> {
         self.send_control(LiveControlCommand::SetMonitorAllBuff(monitor_all_buff))
-    }
-
-    pub fn set_buff_priority(&self, priority_buff_ids: Vec<i32>) -> Result<(), String> {
-        self.send_control(LiveControlCommand::SetBuffPriority(priority_buff_ids))
     }
 
     pub fn set_buff_counter_rules(&self, rules: Vec<CounterRule>) -> Result<(), String> {
@@ -1020,47 +1039,25 @@ impl AppStateManager {
             return;
         }
 
-        let mut payload = crate::live::event_manager::generate_live_data_payload(
+        let payload = crate::live::event_manager::generate_live_data_payload(
             &state.encounter,
             &state.attr_store,
         );
 
-        let mut boss_deaths: Vec<(i64, String)> = Vec::new();
-        let current_time_ms = now_ms() as u128;
-        for boss in &mut payload.bosses {
-            let hp_percent = if let (Some(curr_hp), Some(max_hp)) = (boss.current_hp, boss.max_hp) {
-                if max_hp > 0 {
-                    curr_hp as f64 / max_hp as f64 * 100.0
-                } else {
-                    100.0
-                }
-            } else {
-                100.0
-            };
-
-            if hp_percent < 5.0 {
-                let entry = state
-                    .low_hp_bosses
-                    .entry(boss.uid)
-                    .or_insert(current_time_ms);
-                if current_time_ms.saturating_sub(*entry) >= 5_000 {
-                    boss_deaths.push((boss.uid, boss.name.clone()));
-                    boss.current_hp = Some(0);
-                }
-            } else {
-                state.low_hp_bosses.remove(&boss.uid);
-            }
-        }
-
         state.event_manager.emit_live_data(payload);
 
-        if !boss_deaths.is_empty() {
-            for (boss_uid, boss_name) in boss_deaths {
-                let first_time = state.event_manager.emit_boss_death(boss_name, boss_uid);
-                if !first_time {
-                    continue;
-                }
+        for (&boss_uid, entity) in &state.encounter.entity_uid_to_entity {
+            if !entity.is_boss() {
+                continue;
             }
+
+            let entries = state
+                .attr_store
+                .hate_lists()
+                .get(&boss_uid)
+                .cloned()
+                .unwrap_or_default();
+            state.event_manager.emit_hate_list_update(boss_uid, entries);
         }
     }
 }

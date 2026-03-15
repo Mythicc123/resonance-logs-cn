@@ -39,6 +39,8 @@
 
   let lastMonitorSyncKey = "";
   let lastOverlayVisibleState: boolean | null = null;
+  let lastMonsterMonitorSyncKey = "";
+  let lastMonsterOverlayVisibleState: boolean | null = null;
 
   $effect(() => {
     const enabled = SETTINGS.skillMonitor.state.enabled;
@@ -54,9 +56,6 @@
     const inlineCounterRuleIds = inlineBuffEntries
       .filter((entry) => entry.sourceType === "counter")
       .map((entry) => entry.sourceId);
-    const buffPriorityIds = (activeProfile?.buffPriorityIds ?? []).filter((id) =>
-      monitoredBuffIds.includes(id),
-    );
     const buffDisplayMode = activeProfile?.buffDisplayMode ?? "individual";
     const buffGroups = activeProfile?.buffGroups ?? [];
     const individualAllGroup = activeProfile?.individualMonitorAllGroup ?? null;
@@ -84,12 +83,6 @@
         ...defaultLinkedBuffIds,
       ]),
     );
-    const mergedPriorityIds = Array.from(
-      new Set([
-        ...buffPriorityIds,
-        ...buffGroups.flatMap((group) => group.priorityBuffIds ?? []),
-      ]),
-    );
     const monitoredPanelAttrIds = monitoredPanelAttrs
       .filter((item) => item.enabled)
       .map((item) => item.attrId);
@@ -107,7 +100,6 @@
       enabled,
       monitoredSkillIds,
       mergedBuffIds,
-      mergedPriorityIds,
       monitoredPanelAttrIds,
       anyGroupMonitorAll,
       activeCounterRuleIds,
@@ -122,14 +114,12 @@
             await commands.setMonitorAllBuff(anyGroupMonitorAll);
             await commands.setMonitoredSkills(monitoredSkillIds);
             await commands.setMonitoredBuffs(mergedBuffIds);
-            await commands.setBuffPriority(mergedPriorityIds);
             await setMonitoredPanelAttrs(monitoredPanelAttrIds);
             await commands.setBuffCounterRules(enabledCounterRules);
           } else {
             await commands.setMonitorAllBuff(false);
             await commands.setMonitoredSkills([]);
             await commands.setMonitoredBuffs([]);
-            await commands.setBuffPriority([]);
             await setMonitoredPanelAttrs([]);
             await commands.setBuffCounterRules([]);
           }
@@ -149,6 +139,48 @@
         }
       } catch (error) {
         console.error("[skill-monitor] failed to sync monitor state", error);
+      }
+    })();
+  });
+
+  $effect(() => {
+    const enabled = SETTINGS.monsterMonitor.state.enabled;
+    const monitoredBuffIds = SETTINGS.monsterMonitor.state.monitoredBuffIds;
+    const selfAppliedBuffIds = SETTINGS.monsterMonitor.state.selfAppliedBuffIds;
+    const monsterMonitorSyncKey = JSON.stringify({
+      enabled,
+      monitoredBuffIds,
+      selfAppliedBuffIds,
+    });
+
+    void (async () => {
+      try {
+        if (monsterMonitorSyncKey !== lastMonsterMonitorSyncKey) {
+          lastMonsterMonitorSyncKey = monsterMonitorSyncKey;
+          if (enabled) {
+            await commands.setBossMonitoredBuffs(
+              monitoredBuffIds,
+              selfAppliedBuffIds,
+            );
+          } else {
+            await commands.setBossMonitoredBuffs([], []);
+          }
+        }
+
+        const monsterOverlayWindow = await WebviewWindow.getByLabel("monster-overlay");
+        if (monsterOverlayWindow) {
+          if (lastMonsterOverlayVisibleState !== enabled) {
+            lastMonsterOverlayVisibleState = enabled;
+            if (enabled) {
+              await monsterOverlayWindow.show();
+              await monsterOverlayWindow.unminimize();
+            } else {
+              await monsterOverlayWindow.hide();
+            }
+          }
+        }
+      } catch (error) {
+        console.error("[monster-monitor] failed to sync monster monitor state", error);
       }
     })();
   });

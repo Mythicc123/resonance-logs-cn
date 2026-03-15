@@ -1,8 +1,8 @@
 use crate::live::opcodes_models::class::ClassSpec;
+use crate::live::monster_registry::{self, MonsterType};
 use blueprotobuf_lib::blueprotobuf::{EEntityType, SyncContainerData};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
-use std::sync::LazyLock;
+use std::collections::HashMap;
 use tokio::sync::RwLock;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -23,16 +23,6 @@ pub struct Encounter {
     pub current_scene_id: Option<i32>,
     pub current_scene_name: Option<String>,
     pub current_dungeon_difficulty: Option<i32>,
-    // Pending player death events detected during packet processing. Each tuple is
-    // Pending player revive events detected during packet processing. Each tuple is
-    // (actor_uid, helper_uid_opt, skill_id_opt, timestamp_ms)
-    pub pending_player_revives: Vec<(i64, Option<i64>, Option<i32>, i64)>,
-    // Last recorded revive timestamp per actor (ms) to avoid immediate duplicates.
-    pub last_revive_ms: HashMap<i64, u128>,
-    // Last recorded death timestamp per actor (ms) used only for deduplicating
-    // DB death inserts. We no longer use death tracking for wipe detection; revives
-    // are tracked for UI purposes while death DB inserts are still written.
-    pub last_death_db_ms: HashMap<i64, u128>,
 }
 
 // Use an async-aware RwLock so readers don't block the tokio runtime threads.
@@ -54,7 +44,8 @@ pub enum AttrValue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum AttrType {
     Name,
-    TeamId,
+    MonsterId,
+    ActorState,
     GuildId,
     AttackPower,
     DefensePower,
@@ -126,7 +117,8 @@ impl AttrType {
     pub fn from_id(id: i32) -> Option<Self> {
         match id {
             attr_type::ATTR_NAME => Some(AttrType::Name),
-            attr_type::ATTR_TEAM_ID => Some(AttrType::TeamId),
+            attr_type::ATTR_ID => Some(AttrType::MonsterId),
+            attr_type::ATTR_ACTOR_STATE => Some(AttrType::ActorState),
             attr_type::ATTR_GUILD_ID => Some(AttrType::GuildId),
             attr_type::ATTR_ATTACK_POWER => Some(AttrType::AttackPower),
             attr_type::ATTR_DEFENSE_POWER => Some(AttrType::DefensePower),
@@ -197,7 +189,8 @@ impl AttrType {
     pub fn to_id(self) -> i32 {
         match self {
             AttrType::Name => attr_type::ATTR_NAME,
-            AttrType::TeamId => attr_type::ATTR_TEAM_ID,
+            AttrType::MonsterId => attr_type::ATTR_ID,
+            AttrType::ActorState => attr_type::ATTR_ACTOR_STATE,
             AttrType::GuildId => attr_type::ATTR_GUILD_ID,
             AttrType::AttackPower => attr_type::ATTR_ATTACK_POWER,
             AttrType::DefensePower => attr_type::ATTR_DEFENSE_POWER,
@@ -385,25 +378,6 @@ pub struct Skill {
     pub hits: u128,
 }
 
-// Monster names mapping (id -> name)
-static MONSTER_NAMES: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
-    let data = include_str!("../../meter-data/MonsterName.json");
-    serde_json::from_str(data).expect("invalid MonsterName.json")
-});
-
-// Boss monster IDs (from game data main_category == "boss")
-static MONSTER_NAMES_BOSS: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
-    let data = include_str!("../../meter-data/MonsterNameBoss.json");
-    serde_json::from_str(data).expect("invalid MonsterNameBoss.json")
-});
-
-// Boss exclusion list (names that should NEVER be treated as bosses)
-static BOSS_EXCLUSION_NAMES: LazyLock<HashSet<String>> = LazyLock::new(|| {
-    let mut s = HashSet::new();
-    s.insert("divine defense tower".to_string());
-    s
-});
-
 impl Encounter {
     /// Reset only combat-specific state while preserving player identity fields and cache.
     ///
@@ -444,10 +418,6 @@ impl Encounter {
             entity.taken = CombatStats::default();
             entity.skill_uid_to_taken_skill.clear();
         }
-        // Clear any pending player death tracking for a fresh encounter
-        self.pending_player_revives.clear();
-        self.last_revive_ms.clear();
-        self.last_death_db_ms.clear();
     }
 }
 
@@ -456,7 +426,7 @@ pub mod attr_type {
     pub const ATTR_NAME: i32 = 0x01;
     pub const ATTR_ID: i32 = 0x0a;
     pub const ATTR_SCENE_BASIC_ID: i32 = 0x155; // Scene basic ID (341)
-    pub const ATTR_TEAM_ID: i32 = 0x0b; // Party/raid group number
+    pub const ATTR_ACTOR_STATE: i32 = 0x0b; // Actor state, see EActorState
     pub const ATTR_GUILD_ID: i32 = 0x1e; // Guild/clan ID
     pub const ATTR_ATTACK_POWER: i32 = 0x32; // Attack stat
     pub const ATTR_DEFENSE_POWER: i32 = 0x33; // Defense stat
@@ -485,6 +455,7 @@ pub mod attr_type {
     pub const ATTR_PHYSICAL_ATTACK: i32 = 0x106; // Physical attack stat
     pub const ATTR_MAGIC_ATTACK: i32 = 0x107; // Magic attack stat
     pub const ATTR_WEAPON_TYPE: i32 = 0x108; // Weapon type or stance
+    pub const ATTR_HATE_LIST: i32 = 0x1da; // Monster hate/aggro list
     pub const ATTR_MOUNT_STATUS: i32 = 0x226; // Mount/vehicle status flag
     pub const ATTR_MOUNT_TIMESTAMP: i32 = 0x228; // Mount activation timestamp
     pub const ATTR_MOUNT_SPEED: i32 = 0x22a; // Mount speed or ID
@@ -647,62 +618,27 @@ impl Entity {
     /// Assign monster type id and update display name from mapping if available.
     pub fn set_monster_type(&mut self, monster_id: i32) {
         self.monster_type_id = Some(monster_id);
-        if let Some(name) = MONSTER_NAMES.get(&monster_id.to_string()) {
-            self.name = name.clone();
+        if let Some(name) = monster_registry::monster_name(monster_id) {
+            self.name = name.to_string();
         }
     }
 
     /// Determine whether this entity is a boss based on game data categorization.
-    /// Uses MONSTER_NAMES_BOSS which contains IDs marked as main_category == "boss"
-    /// in the game's quest log data.
     pub fn is_boss(&self) -> bool {
         if self.entity_type != EEntityType::EntMonster {
             return false;
         }
 
-        // Check exclusion list first
-        if BOSS_EXCLUSION_NAMES.contains(&self.name.to_lowercase()) {
-            return false;
-        }
-        if let Some(packet_name) = &self.monster_name_packet {
-            if BOSS_EXCLUSION_NAMES.contains(&packet_name.to_lowercase()) {
-                return false;
-            }
-        }
-
-        // Check if monster_type_id exists in the boss list
-        if self
-            .monster_type_id
-            .map(|id| MONSTER_NAMES_BOSS.contains_key(&id.to_string()))
+        self.monster_type_id
+            .and_then(monster_registry::monster_type)
+            .map(|monster_type| monster_type == MonsterType::Boss)
             .unwrap_or(false)
-        {
-            return true;
-        }
-
-        // If not identified by ID, check for 'Boss' text in the raw packet name
-        if let Some(packet_name) = &self.monster_name_packet {
-            if packet_name.to_lowercase().contains("boss") {
-                return true;
-            }
-        }
-
-        false
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn excluded_boss_is_not_boss() {
-        let mut e = Entity::default();
-        e.entity_type = EEntityType::EntMonster;
-        e.name = "Divine Defense Tower".to_string();
-        // Even if it has boss attributes or name, it should be excluded
-        e.monster_name_packet = Some("Boss - Divine Defense Tower".to_string());
-        assert!(!e.is_boss());
-    }
 
     #[test]
     fn attr_value_float_conversion() {
@@ -728,7 +664,7 @@ mod tests {
     #[test]
     fn attr_type_id_conversion() {
         assert_eq!(AttrType::from_id(0x01), Some(AttrType::Name));
-        assert_eq!(AttrType::from_id(0x0b), Some(AttrType::TeamId));
+        assert_eq!(AttrType::from_id(0x0b), Some(AttrType::ActorState));
         assert_eq!(AttrType::from_id(0x32), Some(AttrType::AttackPower));
         assert_eq!(AttrType::from_id(0x33), Some(AttrType::DefensePower));
         assert_eq!(AttrType::from_id(0x34), Some(AttrType::StarLevel));
@@ -748,7 +684,7 @@ mod tests {
     #[test]
     fn attr_type_to_id_conversion() {
         assert_eq!(AttrType::Name.to_id(), 0x01);
-        assert_eq!(AttrType::TeamId.to_id(), 0x0b);
+        assert_eq!(AttrType::ActorState.to_id(), 0x0b);
         assert_eq!(AttrType::AttackPower.to_id(), 0x32);
         assert_eq!(AttrType::DefensePower.to_id(), 0x33);
         assert_eq!(AttrType::StarLevel.to_id(), 0x34);

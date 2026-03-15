@@ -105,6 +105,14 @@ async setMonitoredBuffs(buffBaseIds: number[]) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async setBossMonitoredBuffs(globalIds: number[], selfAppliedIds: number[]) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_boss_monitored_buffs", { globalIds, selfAppliedIds }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 /**
  * Sets the monitored panel attribute list for panel attribute updates.
  */
@@ -119,14 +127,6 @@ async setMonitoredPanelAttrs(attrIds: number[]) : Promise<Result<null, string>> 
 async setMonitorAllBuff(monitorAllBuff: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("set_monitor_all_buff", { monitorAllBuff }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async setBuffPriority(priorityBuffIds: number[]) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("set_buff_priority", { priorityBuffIds }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

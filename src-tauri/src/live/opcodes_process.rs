@@ -1,5 +1,6 @@
 // NOTE: opcodes_process works on Encounter directly; avoid importing opcodes_models at top-level.
 use crate::database::{flush_playerdata, now_ms};
+use crate::live::commands_models::HateEntry;
 use crate::live::damage_id;
 use crate::live::dungeon_log::{BattleStateMachine, EncounterResetReason};
 use crate::live::entity_attr_store::EntityAttrStore;
@@ -82,65 +83,6 @@ pub(crate) struct EnterSceneResult {
 }
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Record a death event into the encounter and enqueue a DB task.
-fn record_death(
-    encounter: &mut Encounter,
-    actor_id: i64,
-    killer_id: Option<i64>,
-    skill_id: Option<i32>,
-    timestamp_ms: i64,
-) {
-    // Dedupe close-together events for the same actor (2s window) using a
-    // dedicated map for DB death inserts. We no longer use death tracking for
-    // wipe detection/UI; death events are still persisted to the DB.
-    let should_record = match encounter.last_death_db_ms.get(&actor_id) {
-        Some(last_ms) => {
-            let diff = (timestamp_ms as i128 - *last_ms as i128).abs();
-            diff > 2000
-        }
-        None => true,
-    };
-
-    if !should_record {
-        return;
-    }
-
-    encounter
-        .last_death_db_ms
-        .insert(actor_id, timestamp_ms as u128);
-
-    // Enqueue DB task; mark as local player when matching tracked local UID
-    let is_local = encounter.local_player_uid == actor_id;
-    let _ = (timestamp_ms, actor_id, killer_id, skill_id, is_local);
-}
-
-/// Record a revive event into the encounter for UI emission.
-fn record_revive(encounter: &mut Encounter, actor_id: i64, timestamp_ms: i64) {
-    // Dedupe close-together revives for the same actor (2s window)
-    let should_record = match encounter.last_revive_ms.get(&actor_id) {
-        Some(last_ms) => {
-            let diff = (timestamp_ms as i128 - *last_ms as i128).abs();
-            diff > 2000
-        }
-        None => true,
-    };
-
-    if !should_record {
-        return;
-    }
-
-    encounter
-        .last_revive_ms
-        .insert(actor_id, timestamp_ms as u128);
-
-    // Push to pending player revives for UI emission
-    encounter
-        .pending_player_revives
-        .push((actor_id, None, None, timestamp_ms));
-
-    info!("Recorded revive for UID {}", actor_id);
-}
-
 /// Increment global active combat time used for True DPS calculations.
 /// Adds a small grace window for single hits and ignores long idle gaps.
 fn update_active_damage_time(encounter: &mut Encounter, timestamp_ms: u128) {
@@ -162,70 +104,10 @@ fn update_active_damage_time(encounter: &mut Encounter, timestamp_ms: u128) {
     encounter.last_combat_timestamp_ms = Some(timestamp_ms);
 }
 
-fn did_target_die(
-    is_dead_flag: Option<bool>,
-    hp_loss: u128,
-    shield_loss: u128,
-    prev_hp: Option<i64>,
-    max_hp: Option<i64>,
-) -> bool {
-    if let Some(true) = is_dead_flag {
-        return true;
-    }
-
-    let total_loss = hp_loss.saturating_add(shield_loss);
-    if total_loss == 0 {
-        return false;
-    }
-
-    if let Some(prev_hp_val) = prev_hp.filter(|hp| *hp > 0) {
-        let prev_hp_u128 = prev_hp_val as u128;
-        if total_loss >= prev_hp_u128 {
-            return true;
-        }
-    }
-
-    if let Some(max_hp_val) = max_hp.filter(|hp| *hp > 0) {
-        let max_hp_u128 = max_hp_val as u128;
-        if total_loss >= max_hp_u128 {
-            return true;
-        }
-    }
-
-    false
-}
-
 pub fn on_server_change(encounter: &mut Encounter) {
     info!("on server change");
     // Preserve entity identity and local player info; only reset combat state
     encounter.reset_combat_state();
-}
-
-/// Process a NotifyReviveUser packet: record a revive for the actor.
-///
-/// This will add a revive entry to the encounter's pending revives for UI emission
-/// (we no longer clear death markers here because death tracking is not used for
-/// wipe detection).
-pub fn process_notify_revive_user(
-    encounter: &mut Encounter,
-    notify_revive: blueprotobuf::NotifyReviveUser,
-) -> Option<()> {
-    let actor_uuid = notify_revive.v_actor_uuid?;
-    // Actor UUID in protobuf is signed i64; interpret bits as u64 for shifting
-    let actor_uuid_u = actor_uuid as u64;
-    let uid = (actor_uuid_u >> 16) as i64;
-
-    // Record revive for UI emission (timestamp using now_ms helper)
-    let ts = now_ms();
-    record_revive(encounter, uid, ts);
-    // Persist revive to DB (increment per-actor revive counter)
-    let is_local = encounter.local_player_uid == uid;
-    let _ = is_local;
-    info!(
-        "Processed NotifyReviveUser: recorded revive for UID {}",
-        uid
-    );
-    Some(())
 }
 
 pub fn process_sync_near_entities(
@@ -673,15 +555,14 @@ pub fn process_aoi_sync_delta(
         return Some(Vec::new()); // return ok since this variable usually doesn't exist
     };
 
+    let timestamp_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis();
     let mut local_damage_events = Vec::new();
+    let mut had_player_damage = false;
     // Process Damage
     for sync_damage_info in skill_effect.damages {
-        // Timestamp for this event
-        let timestamp_ms = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis();
-        let timestamp_ms_i64 = timestamp_ms.min(i64::MAX as u128) as i64;
         let non_lucky_dmg = sync_damage_info.value;
         let lucky_value = sync_damage_info.lucky_value;
 
@@ -895,12 +776,11 @@ pub fn process_aoi_sync_delta(
         };
 
         if !was_heal_event && attacker_entity_type_copy == EEntityType::EntChar {
-            update_active_damage_time(encounter, timestamp_ms);
+            had_player_damage = true;
         }
 
-        // Now handle defender-side updates in their own scope and compute death info
-        let death_info_local = {
-            // Track damage taken
+        // Track damage taken when a non-player attacks the defender.
+        if !was_heal_event {
             let hp_loss = sync_damage_info.hp_lessen_value.unwrap_or(0).max(0) as u128;
             let shield_loss = sync_damage_info.shield_lessen_value.unwrap_or(0).max(0) as u128;
             let effective_value = if hp_loss + shield_loss > 0 {
@@ -917,75 +797,34 @@ pub fn process_aoi_sync_delta(
                     ..Default::default()
                 });
 
-            // Check for death
-            let prev_hp_opt = attr_store
-                .attr(target_uid, AttrType::CurrentHp)
-                .and_then(AttrValue::as_int);
-            let max_hp_opt = attr_store
-                .attr(target_uid, AttrType::MaxHp)
-                .and_then(AttrValue::as_int);
-            let died = did_target_die(
-                sync_damage_info.is_dead,
-                hp_loss,
-                shield_loss,
-                prev_hp_opt,
-                max_hp_opt,
-            );
-
-            // Only record damage/taken stats if this event is not a heal
-            if !was_heal_event {
-                // Insert damage event
-
-                // Taken stats (only when attacker is not a player)
-                if attacker_entity_type_copy != EEntityType::EntChar {
-                    let taken_skill = defender_entity
-                        .skill_uid_to_taken_skill
-                        .entry(skill_key)
-                        .or_insert_with(|| Skill::default());
-                    if is_crit {
-                        defender_entity.taken.crit_hits += 1;
-                        defender_entity.taken.crit_total += effective_value;
-                        taken_skill.crit_hits += 1;
-                        taken_skill.crit_total_value += effective_value;
-                    }
-                    if is_lucky {
-                        defender_entity.taken.lucky_hits += 1;
-                        defender_entity.taken.lucky_total += effective_value;
-                        taken_skill.lucky_hits += 1;
-                        taken_skill.lucky_total_value += effective_value;
-                    }
-                    defender_entity.taken.hits += 1;
-                    defender_entity.taken.total += effective_value;
-                    taken_skill.hits += 1;
-                    taken_skill.total_value += effective_value;
+            if attacker_entity_type_copy != EEntityType::EntChar {
+                let taken_skill = defender_entity
+                    .skill_uid_to_taken_skill
+                    .entry(skill_key)
+                    .or_insert_with(|| Skill::default());
+                if is_crit {
+                    defender_entity.taken.crit_hits += 1;
+                    defender_entity.taken.crit_total += effective_value;
+                    taken_skill.crit_hits += 1;
+                    taken_skill.crit_total_value += effective_value;
                 }
+                if is_lucky {
+                    defender_entity.taken.lucky_hits += 1;
+                    defender_entity.taken.lucky_total += effective_value;
+                    taken_skill.lucky_hits += 1;
+                    taken_skill.lucky_total_value += effective_value;
+                }
+                defender_entity.taken.hits += 1;
+                defender_entity.taken.total += effective_value;
+                taken_skill.hits += 1;
+                taken_skill.total_value += effective_value;
             }
-
-            let death_info = if died {
-                Some((
-                    target_uid,
-                    Some(attacker_uid),
-                    Some(owner_id),
-                    timestamp_ms_i64,
-                ))
-            } else {
-                None
-            };
-
-            death_info
-        };
-
-        // If death detected, record it (dedupe handled inside record_death)
-        if let Some((actor, killer, skill, ts)) = death_info_local {
-            record_death(encounter, actor, killer, skill, ts);
         }
     }
 
-    // Figure out timestamps.
-    let timestamp_ms = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis();
+    if had_player_damage {
+        update_active_damage_time(encounter, timestamp_ms);
+    }
 
     if encounter.time_fight_start_ms == Default::default() {
         encounter.time_fight_start_ms = timestamp_ms;
@@ -1000,6 +839,34 @@ fn decode_varint_i64(raw: &[u8]) -> Option<i64> {
     prost::encoding::decode_varint(&mut buf)
         .ok()
         .map(|v| v as i64)
+}
+
+#[derive(Clone, PartialEq, prost::Message)]
+struct HateInfoWire {
+    #[prost(int64, tag = "1")]
+    uuid: i64,
+    #[prost(uint32, tag = "2")]
+    hate_val: u32,
+}
+
+fn parse_hate_list_into(raw: &[u8], entries: &mut Vec<HateEntry>) -> Option<()> {
+    let mut buf = raw;
+    entries.clear();
+
+    while buf.has_remaining() {
+        let tag = prost::encoding::decode_varint(&mut buf).ok()?;
+        if tag != 0x0A {
+            return None;
+        }
+
+        let entry = <HateInfoWire as prost::Message>::decode_length_delimited(&mut buf).ok()?;
+        entries.push(HateEntry {
+            uid: entry.uuid >> 16,
+            hate_val: entry.hate_val,
+        });
+    }
+
+    Some(())
 }
 
 fn decode_varint_i64_or_default(raw: Option<&[u8]>) -> i64 {
@@ -1096,6 +963,11 @@ fn process_monster_attrs(
             {
                 if monster_id > 0 {
                     monster_entity.set_monster_type(monster_id);
+                    let _ = attr_store.set_attr(
+                        target_uid,
+                        AttrType::MonsterId,
+                        AttrValue::Int(i64::from(monster_id)),
+                    );
                 }
             }
             continue;
@@ -1110,37 +982,17 @@ fn process_monster_attrs(
             continue;
         }
 
+        if attr_id == attr_type::ATTR_HATE_LIST {
+            if let Some(raw) = raw_bytes_opt {
+                let hate_list = attr_store.hate_list_mut(target_uid);
+                let _ = parse_hate_list_into(raw, hate_list);
+            }
+            continue;
+        }
+
         if let Some(attr_type) = AttrType::from_id(attr_id) {
             let value = decode_varint_i64_or_default(raw_bytes_opt);
             let _ = attr_store.set_attr(target_uid, attr_type, AttrValue::Int(value));
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::did_target_die;
-
-    #[test]
-    fn uses_packet_flag_when_present() {
-        assert!(did_target_die(Some(true), 0, 0, None, None));
-        assert!(!did_target_die(Some(false), 0, 0, Some(10), Some(20)));
-    }
-
-    #[test]
-    fn hp_loss_must_exceed_previous_hp() {
-        assert!(!did_target_die(None, 50, 0, Some(100), Some(200)));
-        assert!(did_target_die(None, 150, 0, Some(100), Some(200)));
-    }
-
-    #[test]
-    fn falls_back_to_max_hp_when_needed() {
-        assert!(did_target_die(None, 1_500, 0, None, Some(1_000)));
-        assert!(!did_target_die(None, 500, 0, None, Some(1_000)));
-    }
-
-    #[test]
-    fn zero_loss_never_marks_death() {
-        assert!(!did_target_die(None, 0, 0, Some(1), Some(2)));
     }
 }

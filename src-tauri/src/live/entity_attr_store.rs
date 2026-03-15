@@ -1,10 +1,12 @@
-use crate::live::commands_models::PanelAttrState;
+use crate::live::commands_models::{HateEntry, PanelAttrState};
 use crate::live::opcodes_models::{AttrType, AttrValue, Entity};
+use blueprotobuf_lib::blueprotobuf::EActorState;
 use std::collections::HashMap;
 
 #[derive(Debug, Default)]
 pub struct EntityAttrStore {
     attrs: HashMap<i64, HashMap<AttrType, AttrValue>>,
+    hate_lists: HashMap<i64, Vec<HateEntry>>,
     temp_attrs: HashMap<i32, i32>,
     local_player_uid: i64,
     panel_attr_values: HashMap<i32, i32>,
@@ -22,6 +24,7 @@ impl EntityAttrStore {
     pub fn with_capacity(attr_entries: usize) -> Self {
         Self {
             attrs: HashMap::with_capacity(attr_entries),
+            hate_lists: HashMap::new(),
             temp_attrs: HashMap::new(),
             local_player_uid: 0,
             panel_attr_values: HashMap::new(),
@@ -85,6 +88,22 @@ impl EntityAttrStore {
             .and_then(|entity_attrs| entity_attrs.get(&attr_type))
     }
 
+    pub fn hate_list_mut(&mut self, uid: i64) -> &mut Vec<HateEntry> {
+        self.hate_lists
+            .entry(uid)
+            .or_insert_with(|| Vec::with_capacity(8))
+    }
+
+    pub fn hate_lists(&self) -> &HashMap<i64, Vec<HateEntry>> {
+        &self.hate_lists
+    }
+
+    pub fn is_dead(&self, uid: i64) -> bool {
+        self.attr(uid, AttrType::ActorState)
+            .and_then(AttrValue::as_int)
+            .is_some_and(|value| value == i64::from(EActorState::ActorStateDead as i32))
+    }
+
     pub fn hydrate_entity(&self, uid: i64, entity: &mut Entity) {
         if let Some(name) = self
             .attr(uid, AttrType::Name)
@@ -144,6 +163,7 @@ impl EntityAttrStore {
 
     pub fn clear_all_entities(&mut self) {
         self.attrs.clear();
+        self.hate_lists.clear();
     }
 
     pub fn drain_changes(&mut self) -> AttrChanges {

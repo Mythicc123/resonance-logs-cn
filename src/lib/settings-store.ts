@@ -153,6 +153,28 @@ export type CustomPanelStyle = {
   progressColor: string;
 };
 
+export type MonsterOverlayPositions = {
+  monsterBuffPanel: Point;
+  hatePanel: Point;
+};
+
+export type MonsterOverlaySizes = {
+  monsterBuffPanelScale: number;
+  hatePanelScale: number;
+};
+
+export type MonsterMonitorConfig = {
+  enabled: boolean;
+  hateListEnabled: boolean;
+  monitoredBuffIds: number[];
+  selfAppliedBuffIds: number[];
+  buffAliases: BuffAliasMap;
+  overlayPositions: MonsterOverlayPositions;
+  overlaySizes: MonsterOverlaySizes;
+  panelStyle: CustomPanelStyle;
+  hatePanelStyle: CustomPanelStyle;
+};
+
 export type TextBuffPanelDisplayMode = "modern" | "classic";
 
 export type TextBuffPanelStyle = {
@@ -278,6 +300,20 @@ function createDefaultCustomPanelStyle(): CustomPanelStyle {
   };
 }
 
+function createDefaultMonsterOverlayPositions(): MonsterOverlayPositions {
+  return {
+    monsterBuffPanel: { x: 40, y: 40 },
+    hatePanel: { x: 40, y: 300 },
+  };
+}
+
+function createDefaultMonsterOverlaySizes(): MonsterOverlaySizes {
+  return {
+    monsterBuffPanelScale: 1,
+    hatePanelScale: 1,
+  };
+}
+
 function createDefaultTextBuffPanelStyle(): TextBuffPanelStyle {
   return {
     displayMode: "modern",
@@ -334,6 +370,20 @@ export function createDefaultSkillMonitorProfile(
     overlayPositions: createDefaultOverlayPositions(),
     overlaySizes: createDefaultOverlaySizes(),
     overlayVisibility: createDefaultOverlayVisibility(),
+  };
+}
+
+export function createDefaultMonsterMonitorConfig(): MonsterMonitorConfig {
+  return {
+    enabled: false,
+    hateListEnabled: false,
+    monitoredBuffIds: [],
+    selfAppliedBuffIds: [],
+    buffAliases: {},
+    overlayPositions: createDefaultMonsterOverlayPositions(),
+    overlaySizes: createDefaultMonsterOverlaySizes(),
+    panelStyle: createDefaultCustomPanelStyle(),
+    hatePanelStyle: createDefaultCustomPanelStyle(),
   };
 }
 
@@ -589,6 +639,7 @@ const DEFAULT_SETTINGS = {
     buffAliases: {} as BuffAliasMap,
     profiles: [createDefaultSkillMonitorProfile()] as SkillMonitorProfile[],
   },
+  monsterMonitor: createDefaultMonsterMonitorConfig(),
   live: {
     general: { ...DEFAULT_GENERAL_SETTINGS },
     dpsPlayers: { ...DEFAULT_STATS },
@@ -672,6 +723,11 @@ export const SETTINGS = {
   skillMonitor: new RuneStore(
     'skillMonitor',
     DEFAULT_SETTINGS.skillMonitor,
+    RUNE_STORE_OPTIONS
+  ),
+  monsterMonitor: new RuneStore(
+    'monsterMonitor',
+    DEFAULT_SETTINGS.monsterMonitor,
     RUNE_STORE_OPTIONS
   ),
   live: {
@@ -804,6 +860,7 @@ export const settings = {
     shortcuts: SETTINGS.shortcuts.state,
     moduleSync: SETTINGS.moduleSync.state,
     skillMonitor: SETTINGS.skillMonitor.state,
+    monsterMonitor: SETTINGS.monsterMonitor.state,
     live: {
       general: SETTINGS.live.general.state,
       dps: {

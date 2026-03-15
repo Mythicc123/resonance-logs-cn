@@ -1,10 +1,11 @@
 use crate::live::state::{AppState, AppStateManager, StateEvent};
 use crate::live::{
     commands_models::{
-        BuffCounterUpdatePayload, BuffUpdatePayload, FightResourceUpdatePayload,
-        PanelAttrUpdatePayload, SkillCdUpdatePayload,
+        BossBuffUpdatePayload, BuffCounterUpdatePayload, BuffUpdatePayload,
+        FightResourceUpdatePayload, PanelAttrUpdatePayload, SkillCdUpdatePayload,
+        HateListUpdatePayload,
     },
-    event_manager::{BossDeathPayload, EncounterUpdatePayload, SceneChangePayload},
+    event_manager::{EncounterUpdatePayload, SceneChangePayload},
     event_manager::{OutboundEvent, safe_emit_to},
 };
 use crate::packets;
@@ -183,15 +184,6 @@ fn decode_state_event(op: packets::opcodes::Pkt, data: Bytes) -> Option<StateEve
                 }
             }
         }
-        packets::opcodes::Pkt::NotifyReviveUser => {
-            match blueprotobuf::NotifyReviveUser::decode(data) {
-                Ok(v) => Some(StateEvent::NotifyReviveUser(v)),
-                Err(e) => {
-                    warn!("Error decoding NotifyReviveUser.. ignoring: {e}");
-                    None
-                }
-            }
-        }
         packets::opcodes::Pkt::BuffInfoSync => match blueprotobuf::BuffInfoSync::decode(data) {
             Ok(v) => {
                 // Dump the packet as JSON for debugging
@@ -274,7 +266,11 @@ pub async fn start(
             }
             packet = rx.recv() => match packet {
             Some((op, data)) => {
-                queue_depth.fetch_sub(1, Ordering::Relaxed);
+                queue_depth
+                    .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |depth| {
+                        Some(depth.saturating_sub(1))
+                    })
+                    .ok();
                 // Process the first packet immediately (low-latency path)
                 let mut batch_events = Vec::new();
                 if let Some(event) = decode_state_event(op, data) {
@@ -297,7 +293,11 @@ pub async fn start(
 
                     match rx.try_recv() {
                         Ok((op, data)) => {
-                            queue_depth.fetch_sub(1, Ordering::Relaxed);
+                            queue_depth
+                                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |depth| {
+                                    Some(depth.saturating_sub(1))
+                                })
+                                .ok();
                             if let Some(event) = decode_state_event(op, data) {
                                 let is_server_change = matches!(event, StateEvent::ServerChange);
                                 batch_events.push(event);
@@ -394,14 +394,6 @@ fn flush_outbound_events(app_handle: &AppHandle, state: &mut AppState) {
                     SceneChangePayload { scene_name },
                 );
             }
-            OutboundEvent::BossDeath { boss_name } => {
-                safe_emit_to(
-                    app_handle,
-                    crate::WINDOW_LIVE_LABEL,
-                    "boss-death",
-                    BossDeathPayload { boss_name },
-                );
-            }
             OutboundEvent::LiveData(payload) => {
                 safe_emit_to(app_handle, crate::WINDOW_LIVE_LABEL, "live-data", payload);
             }
@@ -411,6 +403,22 @@ fn flush_outbound_events(app_handle: &AppHandle, state: &mut AppState) {
                     crate::WINDOW_GAME_OVERLAY_LABEL,
                     "buff-update",
                     BuffUpdatePayload { buffs },
+                );
+            }
+            OutboundEvent::BossBuffUpdate { boss_uid, buffs } => {
+                safe_emit_to(
+                    app_handle,
+                    crate::WINDOW_MONSTER_OVERLAY_LABEL,
+                    "boss-buff-update",
+                    BossBuffUpdatePayload { boss_uid, buffs },
+                );
+            }
+            OutboundEvent::HateListUpdate { boss_uid, entries } => {
+                safe_emit_to(
+                    app_handle,
+                    crate::WINDOW_MONSTER_OVERLAY_LABEL,
+                    "hate-list-update",
+                    HateListUpdatePayload { boss_uid, entries },
                 );
             }
             OutboundEvent::BuffCounterUpdate(counters) => {

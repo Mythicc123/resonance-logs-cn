@@ -1,14 +1,13 @@
 use crate::live::commands_models::{
     BossHealth, BuffUpdateState, CounterUpdateState, FightResourceState, HeaderInfo,
-    LiveDataPayload, PanelAttrState, RawEntityData, SkillCdState, to_raw_combat_stats,
-    to_raw_skill_stats,
+    HateEntry, LiveDataPayload, PanelAttrState, RawEntityData, SkillCdState,
+    to_raw_combat_stats, to_raw_skill_stats,
 };
 use crate::live::entity_attr_store::EntityAttrStore;
 use crate::live::opcodes_models::{AttrType, Encounter, class};
 use blueprotobuf_lib::blueprotobuf::EEntityType;
 use log::{trace, warn};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::RwLock;
 
@@ -89,9 +88,6 @@ pub(crate) fn safe_emit_to<S: Serialize + Clone>(
 #[derive(Debug)]
 pub struct EventManager {
     outbound_events: Vec<OutboundEvent>,
-    dead_bosses: HashSet<i64>,
-    // Map boss_uid -> boss_name for persisted marking
-    dead_boss_names: HashMap<i64, String>,
 }
 
 #[derive(Debug, Clone)]
@@ -103,11 +99,16 @@ pub enum OutboundEvent {
     EncounterReset,
     EncounterPause(bool),
     SceneChange(String),
-    BossDeath {
-        boss_name: String,
-    },
     LiveData(LiveDataPayload),
     BuffUpdate(Vec<BuffUpdateState>),
+    BossBuffUpdate {
+        boss_uid: i64,
+        buffs: Vec<BuffUpdateState>,
+    },
+    HateListUpdate {
+        boss_uid: i64,
+        entries: Vec<HateEntry>,
+    },
     BuffCounterUpdate(Vec<CounterUpdateState>),
     SkillCdUpdate(Vec<SkillCdState>),
     PanelAttrUpdate(Vec<PanelAttrState>),
@@ -119,8 +120,6 @@ impl EventManager {
     pub fn new() -> Self {
         Self {
             outbound_events: Vec::with_capacity(16),
-            dead_bosses: HashSet::new(),
-            dead_boss_names: HashMap::new(),
         }
     }
 
@@ -168,42 +167,6 @@ impl EventManager {
             .push(OutboundEvent::SceneChange(scene_name));
     }
 
-    /// Emits a boss death event.
-    ///
-    /// # Arguments
-    ///
-    /// * `boss_name` - The name of the boss that died.
-    /// * `boss_uid` - The UID of the boss that died.
-    /// Returns true if this is the first time we saw this boss die.
-    pub fn emit_boss_death(&mut self, boss_name: String, boss_uid: i64) -> bool {
-        // Only emit if we haven't already emitted for this boss
-        if self.dead_bosses.insert(boss_uid) {
-            // record the boss name for later persistence
-            self.dead_boss_names.insert(boss_uid, boss_name.clone());
-            self.outbound_events
-                .push(OutboundEvent::BossDeath { boss_name });
-            return true;
-        }
-        false
-    }
-
-    /// Drain and return any dead boss names that have been recorded by the event manager.
-    /// This consumes the stored names and uids so they won't be double-persisted.
-    pub fn take_dead_bosses(&mut self) -> Vec<String> {
-        let mut names = Vec::new();
-        for (_uid, name) in self.dead_boss_names.drain() {
-            names.push(name);
-        }
-        // also clear uids set to keep parity
-        self.dead_bosses.clear();
-        names
-    }
-
-    /// Clears the list of dead bosses.
-    pub fn clear_dead_bosses(&mut self) {
-        self.dead_bosses.clear();
-    }
-
     /// Returns whether the `EventManager` should emit events.
     pub fn should_emit_events(&self) -> bool {
         true
@@ -215,6 +178,16 @@ impl EventManager {
 
     pub fn emit_buff_update(&mut self, buffs: Vec<BuffUpdateState>) {
         self.outbound_events.push(OutboundEvent::BuffUpdate(buffs));
+    }
+
+    pub fn emit_boss_buff_update(&mut self, boss_uid: i64, buffs: Vec<BuffUpdateState>) {
+        self.outbound_events
+            .push(OutboundEvent::BossBuffUpdate { boss_uid, buffs });
+    }
+
+    pub fn emit_hate_list_update(&mut self, boss_uid: i64, entries: Vec<HateEntry>) {
+        self.outbound_events
+            .push(OutboundEvent::HateListUpdate { boss_uid, entries });
     }
 
     pub fn emit_buff_counter_update(&mut self, counters: Vec<CounterUpdateState>) {
@@ -249,13 +222,6 @@ pub struct EncounterUpdatePayload {
     pub header_info: HeaderInfo,
     /// Whether the encounter is paused.
     pub is_paused: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct BossDeathPayload {
-    /// The name of the boss that died.
-    pub boss_name: String,
 }
 
 /// The payload for a scene change event.
@@ -380,6 +346,7 @@ pub fn generate_live_data_payload(
                 name,
                 current_hp,
                 max_hp,
+                is_dead: attr_store.is_dead(uid),
             })
         })
         .collect();

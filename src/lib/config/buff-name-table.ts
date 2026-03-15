@@ -51,6 +51,8 @@ const BUFF_CATEGORY_CATALOG: Record<
   alchemy: { label: "Alchemy", buffIds: [] },
 };
 
+const FOOD_NAME_KEYWORDS = ["物攻", "魔攻", "护甲", "耐力", "生命恢复"];
+
 function resolveBuffCategories(
   defaultName: string,
   iconKey: string | null,
@@ -58,13 +60,13 @@ function resolveBuffCategories(
   const categories: BuffCategoryKey[] = [];
   if (
     iconKey?.startsWith("buff_food_up") &&
-    (defaultName.startsWith("\u98df\u7269") || defaultName.startsWith("\u996d\u98df"))
+    FOOD_NAME_KEYWORDS.some((keyword) => defaultName.includes(keyword))
   ) {
     categories.push("food");
   }
   if (
     iconKey?.startsWith("buff_agentia_up") &&
-    defaultName.startsWith("\u70bc\u91d1\u5242\u526a")
+    defaultName.includes("元素强度")
   ) {
     categories.push("alchemy");
   }
@@ -229,7 +231,7 @@ export function resolveBuffNameInfo(
 export function searchBuffsByName(
   keyword: string,
   aliases?: BuffAliasMap,
-  limit = 120,
+  limit?: number | null,
 ): BuffNameInfo[] {
   const normalizedKeyword = normalizeText(keyword);
   if (!normalizedKeyword) return [];
@@ -248,7 +250,8 @@ export function searchBuffsByName(
 
   matches.sort((a, b) => a.rank - b.rank || a.baseId - b.baseId);
 
-  return matches.slice(0, Math.max(1, limit)).map((match) =>
-    resolveBuffNameInfo(match.baseId, normalizedAliases)
-  );
+  const normalizedLimit = Number.isFinite(limit) ? Math.max(1, Math.floor(limit ?? 0)) : null;
+  const visibleMatches = normalizedLimit === null ? matches : matches.slice(0, normalizedLimit);
+
+  return visibleMatches.map((match) => resolveBuffNameInfo(match.baseId, normalizedAliases));
 }
