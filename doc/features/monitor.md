@@ -1,139 +1,139 @@
-# Buff 监控
+# Buff Monitor
 
-技能 CD、Buff 监听、自定义面板等功能说明。
+Skill CD, buff tracking, custom panel, and related feature documentation.
 
-## 概述
+## Overview
 
-实时监控分为以下几个部分：
+Real-time monitoring is divided into the following sections:
 
-- **技能 CD**：监控技能冷却
-- **Buff 监控**：监听指定 Buff 的持续时间、层数等
-- **角色面板**：显示攻速、暴击率、智力等属性
-- **自定义面板**：以进度条形式展示计数器和 Buff
-- **启用窗口**：浮窗显示与布局
+- **Skill CD**: Monitor skill cooldowns
+- **Buff Monitor**: Track specified buffs' duration, stacks, etc.
+- **Character Panel**: Display stats such as attack speed, crit rate, intelligence, etc.
+- **Custom Panel**: Show counters and buffs in a progress bar format
+- **Enable Window**: Overlay display and layout
 
-> **⚠️ 中途打开应用**：若在游戏进行中才打开本应用，技能 CD、角色面板属性等可能显示不全。这是因为游戏仅会推送**增量更新**，应用无法获取当前完整状态。解决方式：**切图**（切换场景/地图）一次，触达全量属性同步后，显示即会恢复正常。
-> 
-
----
-
-## 技能 CD
-
-- 选择职业后，可勾选需要监控的技能
-- 实时显示技能冷却状态与剩余时间
-- 支持按职业切换不同方案
-
-### 技能变换
-
-部分技能会在特定 Buff 生效时变为另一形态，技能 CD 栏会根据当前 Buff 状态自动切换图标与名称。例如青岚骑士的「飞鸟投」在拥有特定 Buff 时显示为「极·岚切」；冰法的「寒冰风暴」在免读条 Buff 下显示为「免读条的寒冰风暴」。
-
-![技能变换示意](img/monitor/cd_1.png)
+> **Warning -- Opening the app mid-game**: If you open this application while the game is already in progress, Skill CD, character panel stats, etc. may be incomplete. This is because the game only sends **incremental updates**, and the app cannot retrieve the full current state. Solution: **change zones** (switch scene/map) once to trigger a full state sync, and the display will return to normal.
+>
 
 ---
 
-## Buff 监控
+## Skill CD
 
-### 独立模式 / 分组模式
+- After selecting a class, check the skills you want to monitor
+- Real-time display of skill cooldown status and remaining time
+- Supports switching presets by class
 
-- **独立模式**：每个 Buff 单独显示，可单独设置图标大小、位置
+### Skill Transformation
 
-![独立模式示意](img/monitor/buff_2.png)
+Some skills transform into a different form when a specific buff is active. The Skill CD display will automatically switch the icon and name based on the current buff state. For example, Wind Knight's "Bird Toss" displays as "Ultimate: Storm Slash" when a specific buff is active; Frostmage's "Blizzard" displays as "Instant-cast Blizzard" when the cast-skip buff is active.
 
-- **分组模式**：多个 Buff 合为一组，统一布局
-
-![分组模式示意](img/monitor/buff_1.png)
-
-### 特殊 Buff
-
-部分 Buff 会根据**层数**改变显示效果（如 1 层、2 层显示不同图标），这类 Buff 称为特殊 Buff。使用时无需额外配置，只需像普通 Buff 一样将其加入监听列表即可，浮窗会按层数自动切换对应图标。
-
-**使用方式：**
-
-1. 在 **实时监控 → Buff监控** 中，将目标 Buff 加入监听（可搜索 Buff 名称）
-2. 若该 Buff 已配置为特殊 Buff，图标会随层数自动变化，无需额外设置
-
-**当前已支持的特殊 Buff：**
-
-| 职业 | Buff 名称 | 效果说明 |
-|------|-----------|----------|
-| 青岚骑士 | 追击身法 | 1 层显示单图标，2 层显示双图标组合，便于区分叠层状态 |
-
-### Buff 别名
-
-游戏内部分 Buff 名称不直观，可在 **Buff监控 → Buff别名设置** 中设置：
-
-- 搜索原名称（如 `[热枕]`）
-- 设置显示名称（如「生命波动」）
-
-别名**全局生效**，不随方案切换改变。
-
-### 如何快速找到要监听的 Buff？
-
-由于 Buff 配置名较乱，若不确定目标 Buff 的准确名称，可先在**分组模式**下对某组开启「监听所有」，待浮窗显示出所有 Buff 后，根据实际效果确认对应名称，再将其加入精确监听列表。
-
-### 分类快捷监听
-
-- **食物**：一次性监听所有食物 Buff
-- **炼金**：一次性监听所有炼金 Buff
-
-在 **Buff监控 → 分类快捷监听** 中使用，或分组模式下使用快捷按钮。
-
-### Buff 优先级
-
-可设置 Buff 在有限空间内的显示优先级，优先显示重要 Buff。
-
-### 无图标 Buff
-
-无图标的 Buff 会以同一行进度条的形式展示。其**名称颜色**、**数值颜色**、**进度条颜色**均可自定义，设置入口：**实时监控 → Buff监控**。
+![Skill transformation illustration](img/monitor/cd_1.png)
 
 ---
 
-## 自定义面板
+## Buff Monitor
 
-将计数器或 Buff 以**进度条**形式展示，适用于无图标的 Buff 或需要统一布局的场景。
+### Standalone Mode / Group Mode
 
-![自定义面板示意](img/monitor/buff_3.png)
+- **Standalone mode**: Each buff is displayed individually; icon size and position can be set independently
 
-进度条与文字外观均可自定义：
+![Standalone mode illustration](img/monitor/buff_2.png)
 
-- **自定义面板**（计数器、Buff 进度条）：行间距、字体大小、名称与数值间距，以及**名称颜色**、**数值颜色**、**进度条颜色**
+- **Group mode**: Multiple buffs are grouped together with a unified layout
 
-以上选项均在 **实时监控 → 自定义面板** 中设置。
+![Group mode illustration](img/monitor/buff_1.png)
 
-### 计数器
+### Special Buffs
 
-支持「关联 Buff、伤害类型」的状态机，用于计数一些非 Buff 维护的特殊触发，例如：
+Some buffs change their display based on **stack count** (e.g., different icons for 1 stack vs. 2 stacks). These are called special buffs. No extra configuration is needed -- just add them to the monitoring list like any regular buff, and the overlay will automatically switch icons based on the stack count.
 
-- 幻想冲击的计数
-- 超然触发的计数
+**How to use:**
 
-在 **实时监控 → 自定义面板 → 添加计数器** 中配置。
+1. In **Real-time Monitor > Buff Monitor**, add the target buff to the monitoring list (you can search by buff name)
+2. If the buff is configured as a special buff, the icon will change automatically based on stack count -- no additional setup required
+
+**Currently supported special buffs:**
+
+| Class | Buff Name | Effect Description |
+|-------|-----------|-------------------|
+| Wind Knight | Pursuit Stance | 1 stack shows a single icon; 2 stacks shows a dual icon combo, making it easy to distinguish stack states |
+
+### Buff Aliases
+
+Some in-game buff names are not intuitive. You can rename them in **Buff Monitor > Buff Alias Settings**:
+
+- Search for the original name (e.g., `[Zeal]`)
+- Set a display name (e.g., "Life Fluctuation")
+
+Aliases **apply globally** and are not affected by preset switching.
+
+### How to quickly find a buff to monitor?
+
+Since buff configuration names can be confusing, if you are unsure of the exact name of the target buff, you can first enable "Monitor All" in **group mode** for a group. Once the overlay displays all buffs, identify the correct name based on the actual effect, then add it to the precise monitoring list.
+
+### Category Quick Monitor
+
+- **Food**: Monitor all food buffs at once
+- **Alchemy**: Monitor all alchemy buffs at once
+
+Use this in **Buff Monitor > Category Quick Monitor**, or use the shortcut buttons in group mode.
+
+### Buff Priority
+
+You can set display priority for buffs in limited space, ensuring important buffs are shown first.
+
+### Buffs Without Icons
+
+Buffs without icons are displayed as progress bars on a single line. Their **name color**, **value color**, and **progress bar color** are all customizable. Settings path: **Real-time Monitor > Buff Monitor**.
 
 ---
 
-## 布局与显示
+## Custom Panel
 
-### 浮窗位置
+Display counters or buffs in a **progress bar** format, suitable for buffs without icons or scenarios requiring a unified layout.
 
-各模块（技能 CD、资源、Buff 面板、角色面板、自定义面板）均可拖动调整位置。
+![Custom panel illustration](img/monitor/buff_3.png)
 
-### 显示格式
+Progress bar and text appearance are fully customizable:
 
-- Buff 持续时间支持「分组」「小时」等格式
-- 可设置是否显示名称、剩余时间、层数
+- **Custom Panel** (counters, buff progress bars): Row spacing, font size, name-to-value spacing, as well as **name color**, **value color**, and **progress bar color**
+
+All options above are configured in **Real-time Monitor > Custom Panel**.
+
+### Counters
+
+Supports a state machine that links buffs and damage types, used to count special triggers not maintained as buffs, such as:
+
+- Phantasm Impact count
+- Transcendence trigger count
+
+Configure in **Real-time Monitor > Custom Panel > Add Counter**.
 
 ---
 
-## 最佳实践
+## Layout & Display
 
-配置完成后，建议使用 **`Ctrl+\`** 进入**无 UI 模式**：主界面收起，仅保留浮窗显示技能 CD、资源、Buff 等。将浮窗置于屏幕边缘或视线余光处，即便屏幕较大也无需低头查看，即可掌握冷却与资源情况。
+### Overlay Position
 
-![最佳实践示意](img/monitor/buff_4.png)
+All modules (Skill CD, resources, buff panel, character panel, custom panel) can be dragged to adjust position.
+
+### Display Format
+
+- Buff duration supports "grouped" and "hours" formats
+- You can choose whether to display name, remaining time, and stack count
 
 ---
 
-## 方案
+## Best Practices
 
-- 不同职业/玩法可创建不同**方案**
-- 每个方案可配置独立的技能 CD、Buff 监听、布局等
-- 切换方案即可切换整套监控配置
+After configuration is complete, it is recommended to press **`Ctrl+\`** to enter **UI-free mode**: the main interface is minimized, leaving only the overlay displaying Skill CD, resources, buffs, etc. Position the overlay at the screen edge or in your peripheral vision -- even on a large screen, you can monitor cooldowns and resources at a glance without looking away.
+
+![Best practices illustration](img/monitor/buff_4.png)
+
+---
+
+## Presets
+
+- Different classes/playstyles can have different **presets**
+- Each preset can have independent Skill CD, buff monitoring, layout, etc.
+- Switching presets switches the entire monitoring configuration

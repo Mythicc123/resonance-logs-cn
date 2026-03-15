@@ -1,13 +1,13 @@
-# 版本更新归档
+# Changelog Archive
 
-各版本更新说明归档目录（由 git 历史提取）。
+Archived release notes for each version (extracted from git history).
 
-| 版本   | 文档                     |
-| ------ | ------------------------ |
-| v0.0.6 | [v0.0.6.md](./v0.0.6.md) |
-| v0.0.5 | [v0.0.5.md](./v0.0.5.md) |
-| v0.0.4 | [v0.0.4.md](./v0.0.4.md) |
-| v0.0.3 | [v0.0.3.md](./v0.0.3.md) |
-| v0.0.2 | [v0.0.2.md](./v0.0.2.md) |
+| Version | Document                 |
+| ------- | ------------------------ |
+| v0.0.6  | [v0.0.6.md](./v0.0.6.md) |
+| v0.0.5  | [v0.0.5.md](./v0.0.5.md) |
+| v0.0.4  | [v0.0.4.md](./v0.0.4.md) |
+| v0.0.3  | [v0.0.3.md](./v0.0.3.md) |
+| v0.0.2  | [v0.0.2.md](./v0.0.2.md) |
 
-> 当前最新版本说明见项目根目录 [CHANGELOG.md](../../CHANGELOG.md)。
+> The latest version's release notes can be found in the project root [CHANGELOG.md](../../CHANGELOG.md).

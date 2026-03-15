@@ -1,91 +1,91 @@
-# 常见问题 (FAQ)
+# Frequently Asked Questions (FAQ)
 
-## 安装与运行
+## Installation & Running
 
-### 如何保存设置？升级后设置会丢失吗？
+### How do I save settings? Will my settings be lost after an upgrade?
 
-每次安装新版本时**不要删除用户设置目录**，设置会保留。若本次更新前端无结构性调整，设置会自动兼容并保存；
+When installing a new version, **do not delete the user settings directory** and your settings will be preserved. If the frontend has no structural changes in the current update, settings will be automatically compatible and saved.
 
-### 0.0.6-beta 首次使用提示清理数据库？
+### First-time upgrade to 0.0.6-beta prompts to clean the database?
 
-若你之前使用过 0.0.2 或 0.0.3，首次升级到 0.0.6-beta 时需手动清理旧数据库，否则可能出现异常：
+If you previously used version 0.0.2 or 0.0.3, you need to manually clean the old database when upgrading to 0.0.6-beta for the first time, otherwise errors may occur:
 
-1. 关闭应用
-2. 删除 `%LOCALAPPDATA%\resonance-logs-cn` 目录下的 `resonance-logs-cn.db`
-3. 重新启动应用
-
----
-
-## 数据捕获
-
-### 抓包方式选 WinDivert 还是 Npcap？
-
-| 方式 | 说明 |
-|------|------|
-| **WinDivert** | 默认方式，需管理员权限，应用内置驱动 |
-| **Npcap** | 需单独安装 [Npcap](https://npcap.com/) |
-
-设置路径：**DPS检测 → 设置 → 网络**。
-
-### 没有数据 / 抓不到包怎么办？
-
-1. 确认游戏已在运行
-2. 检查抓包方式：WinDivert
-3. 若用 Npcap：确认已安装 Npcap，并正确选择网络接口
-4. 关闭可能冲突的 VPN、代理或其它抓包工具后重试
-
-### WinDivert 被防火墙拦截导致无法使用？
-
-若 Windows 防火墙拦截 WinDivert，抓包将无法正常工作。可在防火墙设置中为应用添加放行规则，或临时关闭防火墙进行排查。
-
-![WinDivert 防火墙拦截示意](features/img/faq/faq.png)
+1. Close the application
+2. Delete `resonance-logs-cn.db` from the `%LOCALAPPDATA%\resonance-logs-cn` directory
+3. Restart the application
 
 ---
 
-## DPS 相关
+## Data Capture
 
-### 秒伤和真秒伤有什么区别？
+### Should I choose WinDivert or Npcap for packet capture?
 
-- **秒伤 (DPS)**：总伤害 ÷ 战斗总时长
-- **真秒伤 (TDPS)**：总伤害 ÷ 全局**活跃战斗时间**（排除长时间停手、跑路等空档）
+| Method | Description |
+|--------|-------------|
+| **WinDivert** | Default method; requires administrator privileges; driver is bundled with the app |
+| **Npcap** | Requires a separate installation of [Npcap](https://npcap.com/) |
 
-### 历史记录会自动清理吗？
+Settings path: **DPS Meter > Settings > Network**.
 
-历史记录超过 200 条时，下次启动应用会自动按时间删除较早记录，并重置序列。
+### No data / packets not being captured?
 
----
+1. Confirm the game is running
+2. Check the capture method: WinDivert
+3. If using Npcap: confirm Npcap is installed and the correct network interface is selected
+4. Close any potentially conflicting VPNs, proxies, or other packet capture tools and try again
 
-## Buff / 技能 CD
+### WinDivert blocked by Windows Firewall?
 
-### 中途打开应用，CD、属性显示不全怎么办？
+If Windows Firewall blocks WinDivert, packet capture will not work properly. You can add a firewall exception rule for the application, or temporarily disable the firewall to troubleshoot.
 
-若在游戏进行中才启动应用，技能 CD、Buff、角色面板属性等可能显示不全。游戏只推送**增量更新**，应用无法拿到当前完整状态。解决方式：**切图**一次（例如进出副本、换区、传送等），触发整局属性同步后，显示会恢复正常。
-
-### Buff 别名有什么用？
-
-游戏内部分 Buff 名称不直观（如 `[热枕]`），可在 **实时监控 → Buff监控 → Buff别名设置** 中将其设置为更易识别的名字（如「生命波动」）。该设置全局生效，不随方案切换改变。
-
-### 如何快速监听所有食物 / 炼金 Buff？
-
-- **独立模式**：使用「分类快捷监听」，可一次性监听所有食物或炼金 Buff
-- **分组模式**：在 Buff 监控中可点击「食物」「炼金」快捷按钮一键配置
-
-### 不确定 Buff 名称，如何快速找到要监听的？
-
-由于 Buff 配置名较乱，可先开启「监听所有」，浮窗会显示所有 Buff，根据实际效果确认对应名称后，再将其加入精确监听列表。
+![WinDivert firewall block illustration](features/img/faq/faq.png)
 
 ---
 
-## 其他
+## DPS Related
 
-### 日志文件在哪获取？
+### What is the difference between DPS and True DPS?
 
-在 **DPS检测 → 设置 → 调试** 中可「打开日志」目录
+- **DPS**: Total damage / total combat duration
+- **True DPS (TDPS)**: Total damage / total **active combat time** (excluding idle periods such as running between pulls, downtime, etc.)
 
-### 如何给别人分享自己已经配置好的配置？
+### Is history automatically cleaned up?
 
-用户配置存放在 `%APPDATA%\com.resonance-logs-cn` 目录下。将该目录打包发给对方，对方解压到相同路径即可使用你的配置（需关闭应用后操作）。
+When history exceeds 200 entries, the next time the application starts it will automatically delete older entries by time and reset the sequence.
 
-### 如何切换遮罩窗口？
+---
 
-在 **DPS检测 → 设置 → 快捷键** 中可设置「切换遮罩窗口」的快捷键。
+## Buff / Skill CD
+
+### Opened the app mid-game and CD/stats are incomplete?
+
+If you launch the app while the game is already in progress, Skill CD, buff, and character panel stats may be incomplete. The game only sends **incremental updates**, so the app cannot retrieve the full current state. Solution: **change zones** once (e.g., enter/exit a dungeon, switch areas, teleport, etc.) to trigger a full state sync, and the display will return to normal.
+
+### What are buff aliases for?
+
+Some in-game buff names are not intuitive (e.g., `[Zeal]`). You can rename them in **Real-time Monitor > Buff Monitor > Buff Alias Settings** to a more recognizable name (e.g., "Life Fluctuation"). This setting applies globally and is not affected by preset switching.
+
+### How do I quickly monitor all food / alchemy buffs?
+
+- **Standalone mode**: Use "Category Quick Monitor" to monitor all food or alchemy buffs at once
+- **Group mode**: In Buff Monitor, click the "Food" or "Alchemy" shortcut buttons for one-click configuration
+
+### Not sure of the buff name -- how do I find what to monitor?
+
+Since buff configuration names can be confusing, you can first enable "Monitor All" -- the overlay will display all buffs. Once you identify the correct name based on the actual effect, add it to the precise monitoring list.
+
+---
+
+## Other
+
+### Where can I find the log files?
+
+In **DPS Meter > Settings > Debug**, you can "Open Logs" directory.
+
+### How do I share my configuration with someone else?
+
+User configurations are stored in the `%APPDATA%\com.resonance-logs-cn` directory. Package that directory and send it to the other person; they can extract it to the same path to use your configuration (the application must be closed during this process).
+
+### How do I toggle the overlay window?
+
+In **DPS Meter > Settings > Hotkeys**, you can set a hotkey for "Toggle Overlay Window".

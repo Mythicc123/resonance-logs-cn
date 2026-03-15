@@ -1,101 +1,100 @@
-# DPS 检测
+# DPS Meter
 
-实时伤害统计、历史记录及自定义列设置说明。
+Real-time damage statistics, history, and custom column settings.
 
-## 概述
+## Overview
 
-DPS 检测通过网络抓包解析战斗数据，支持：
+The DPS Meter parses combat data via network packet capture, supporting:
 
-- **实时统计**：战斗中即时更新伤害、秒伤等
-- **历史记录**：保存往期战斗
-- **多维度数据**：伤害、治疗、承伤（DPS / HPS / TPS）
-
----
-
-## 数据指标说明
-
-### 技能栏构成
-
-DPS 技能栏按客户端的 DPS 逻辑展示：每个技能下可能有多个伤害来源，每条伤害会按固定规则拼接成**伤害 ID**，再根据伤害 ID 聚合成单个技能进行展示。因此点开部分技能时会看到多条细分条目。
-
-![技能栏示意 - 聚合前](img/dps/dps_1.png)
-
-![技能栏示意 - 展开多条条目](img/dps/dps_2.png)
-
-聚合规则简要说明：
-
-1. **原始伤害条目**：每次命中对应一条记录，包含技能 ID、伤害来源、命中事件 ID 等
-2. **聚合展示**：相同伤害 ID 的条目合并为一个「技能」显示；展开时可看到该技能下的多个子条目
-
-
-### 真秒伤与活跃战斗时间
-
-- **秒伤**：按整场战斗的挂钟时间计算
-- **真秒伤**：按「有实际伤害发生的活跃时间」计算
-
-在 **DPS检测 → 主题 → 实时 → 计时器** 中可勾选「显示活跃战斗时间」以查看活跃时间。
-
-### 治疗 / 承伤列
-
-治疗与承伤模式使用类似列结构，分别统计 HPS（秒疗）、TPS（秒承伤）及暴击、幸运等相关指标。
+- **Real-time statistics**: Instant updates of damage, DPS, etc. during combat
+- **History**: Saves past combat encounters
+- **Multi-dimensional data**: Damage, healing, damage taken (DPS / HPS / TPS)
 
 ---
 
-## 重置逻辑
+## Data Metrics
 
-战斗统计的切分与重置规则如下：
+### Skill Breakdown
 
-| 场景 | 行为 |
-|------|------|
-| **大师本** | 自动切分道中和 Boss，历史记录为 2 条：道中一段、Boss 一段 |
-| **团本** | 每个 Boss 独立切分，每个 Boss 对应一条历史记录 |
-| **团灭** | 团灭时自动重置当前统计 |
+The DPS skill breakdown follows the client's built-in DPS logic: each skill may have multiple damage sources, and each damage instance is assembled into a **damage ID** using fixed rules, then aggregated into a single skill for display. As a result, expanding some skills will reveal multiple sub-entries.
 
-同一场景下的重置均为「下次攻击目标后」自动触发：
+![Skill breakdown - aggregated view](img/dps/dps_1.png)
 
-- **大师本**：清完道中后，首次攻击 Boss 时自动重置，Boss 段单独统计
-- **团本**：每次攻击新 Boss 时自动重置
-- **团灭后**：下次攻击 Boss 时自动重置
+![Skill breakdown - expanded sub-entries](img/dps/dps_2.png)
 
----
+Brief explanation of the aggregation rules:
 
-## 主题与自定义
+1. **Raw damage entries**: Each hit corresponds to one record, containing the skill ID, damage source, hit event ID, etc.
+2. **Aggregated display**: Entries with the same damage ID are merged into a single "skill" display; expanding it reveals the individual sub-entries under that skill
 
-DPS 界面支持**高度自定义**，可在 **DPS检测 → 主题** 中调整外观与布局。
+### True DPS and Active Combat Time
 
-![主题页示意](img/dps/dps_4.png)
+- **DPS**: Calculated using the total wall-clock time of the entire encounter
+- **True DPS**: Calculated using only the "active time during which actual damage occurred"
 
-- **颜色主题**：提供多种预设（如暗色、亮色、粉、绿、抹茶、彩虹等），也可自定义各项颜色
-- **尺寸与布局**：调整表格、表头、字体大小、内边距等
-- **计时器与按钮**：选择是否显示活跃战斗时间、重置/暂停/Boss 筛选等按钮
-- **列显示与排序**：在设置中勾选或隐藏玩家/技能列的各项指标
+In **DPS Meter > Theme > Real-time > Timer**, check "Show active combat time" to display the active time.
 
-通过预设与自定义搭配，可按个人习惯打造专属的 DPS 显示风格。
+### Healing / Damage Taken Columns
+
+Healing and damage taken modes use a similar column structure, tracking HPS (healing per second), TPS (damage taken per second), and related metrics such as critical hits, lucky hits, etc.
 
 ---
 
-## 设置入口
+## Reset Logic
 
-| 设置项 | 路径 |
-|--------|------|
-| 玩家列显示 | DPS检测 → 设置 → 实时 → DPS（玩家）列 |
-| 技能列显示 | DPS检测 → 设置 → 实时 → DPS（技能）列 |
-| 刷新频率 | DPS检测 → 设置 → 实时 → 刷新频率（50–2000ms） |
-| 缩写 DPS 数值 | DPS检测 → 设置 → 实时 → 缩写 DPS 数值（如 5k、50k） |
-| 活跃战斗时间 | DPS检测 → 主题 → 实时 → 计时器 → 显示活跃战斗时间 |
-| 网络抓包方式 | DPS检测 → 设置 → 网络 |
-| 快捷键 | DPS检测 → 设置 → 快捷键 |
+Combat statistics are split and reset according to the following rules:
+
+| Scenario | Behavior |
+|----------|----------|
+| **Master dungeons** | Automatically split into trash mobs and boss; history shows 2 entries: one for trash, one for boss |
+| **Raids** | Each boss is split independently; each boss corresponds to one history entry |
+| **Wipe** | Statistics are automatically reset on wipe |
+
+Resets within the same scenario are triggered automatically on the next attack:
+
+- **Master dungeons**: After clearing trash mobs, statistics reset automatically when you first attack the boss; the boss phase is tracked separately
+- **Raids**: Statistics reset automatically when you attack a new boss
+- **After a wipe**: Statistics reset automatically when you next attack the boss
 
 ---
 
-## 历史记录
+## Theme & Customization
 
-历史记录相比实时统计能展示更完整、更细分的复盘数据，例如：
+The DPS interface is **highly customizable** via **DPS Meter > Theme**.
 
-- **对每个目标的伤害构成**：按目标（首领、小怪等）拆分各技能的伤害
-- **技能分布详情**：展开后可查看技能下的多条伤害来源
-- **完整战斗数据**：包含整场战斗的汇总统计
+![Theme settings](img/dps/dps_4.png)
 
-![历史记录示意](img/dps/dps_3.png)
+- **Color themes**: Multiple presets available (dark, light, pink, green, matcha, rainbow, etc.), plus full custom color options
+- **Size & layout**: Adjust table, header, font size, padding, etc.
+- **Timer & buttons**: Choose whether to display active combat time, reset/pause/boss filter buttons
+- **Column visibility & sorting**: Check or hide various metrics in the player/skill columns
 
-- 历史记录超过 200 条时，下次启动会按时间自动清理较早记录并重置序列. 因此不需要特意维护历史数据
+By combining presets and custom settings, you can create a personalized DPS display style.
+
+---
+
+## Settings Reference
+
+| Setting | Path |
+|---------|------|
+| Player column display | DPS Meter > Settings > Real-time > DPS (Player) Columns |
+| Skill column display | DPS Meter > Settings > Real-time > DPS (Skill) Columns |
+| Refresh rate | DPS Meter > Settings > Real-time > Refresh Rate (50--2000 ms) |
+| Abbreviate DPS values | DPS Meter > Settings > Real-time > Abbreviate DPS Values (e.g., 5k, 50k) |
+| Active combat time | DPS Meter > Theme > Real-time > Timer > Show Active Combat Time |
+| Network capture method | DPS Meter > Settings > Network |
+| Hotkeys | DPS Meter > Settings > Hotkeys |
+
+---
+
+## History
+
+History provides more comprehensive and detailed review data compared to real-time statistics, including:
+
+- **Damage breakdown per target**: Damage from each skill split by target (boss, adds, etc.)
+- **Skill distribution details**: Expand to see multiple damage sources under each skill
+- **Full combat data**: Summary statistics for the entire encounter
+
+![History view](img/dps/dps_3.png)
+
+- When history exceeds 200 entries, the next time the application starts it will automatically clean up older entries by time and reset the sequence, so there is no need to manually maintain history data.

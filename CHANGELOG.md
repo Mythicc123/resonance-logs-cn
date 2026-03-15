@@ -2,36 +2,36 @@
 
 ## Logs
 
-**dps 相关**
+**DPS Related**
 
-- 修改真秒伤的设置逻辑, 从原来的每个实体各自计算修改为根据全局活跃时间计算
-- 增加设置控制是否展示全局活跃时间.(DPS检测-主题-实时-计时器-显示活跃战斗时间)
-- 历史记录超过 200 条时现在会在下次打开应用时自动根据时间删除, 并重置序列
-- 修复历史记录总览页和详情页时间显示不一致的问题, 统一使用第一次战斗包和最后一次战斗包的差值
+- Changed true DPS calculation logic from per-entity to global active time based
+- Added setting to toggle display of global active time (DPS Monitor → Theme → Live → Timer → Show Active Combat Time)
+- History records exceeding 200 entries are now auto-deleted by time on next app launch, resetting the sequence
+- Fixed inconsistent time display between history overview and detail pages; unified to use time difference between first and last combat packets
 
-**buff 相关**
+**Buff Related**
 
-- 重组设置界面展示, 分为技能 CD, Buff监控, 角色面板, 自定义面板, 启用窗口.
-- buff 增加全局别名设置, 搜索 buff 将其设置为其他名字, 例如将"[热枕]"设置为生命波动. (实时监控-Buff监控-Buff别名设置. 该设置全局生效, 不会随方案切换而改变)
-- 独立模式增加"分类快捷监听", 主要用于一次性监听所有食物或炼金 buff, 并统一进行布局. 分组模式增加"食物", "炼金"快捷设置按钮, 一次性监听所有食物, 炼金 buff. (实时监控-Buff监控-分类快捷监听)
-- 增加自定义面板用于计数器和 buff 监控, 统一以进度条的形式展示. 并能设置进度条的行间距, 字体大小等. 不想展示图标可以把 buff 放到这里展示.
-- 修改无图标 buff 的展示形式, 统一在同一行进行展示, 并能设置进度条的行间距等. 支持设置回旧格式
-- 引入关联 buff, 伤害类型的状态机, 用于计数一些不在 buff 中维护由特殊伤害累计触发的特殊 buff. 例如幻想冲击的计数, 超然触发的计数. (实时监控-自定义面板-添加计数器)
-- buff 持续时间格式修改, 增加分组, 小时的显示
-- 支持能够设置 "切换遮罩窗口" 快捷键(DPS检测-设置-快捷键)
+- Reorganized settings UI into: Skill CD, Buff Monitor, Character Panel, Custom Panel, Enable Window
+- Added global buff alias setting — search for a buff and rename it, e.g. rename "[Zeal]" to "Life Surge" (Live Monitor → Buff Monitor → Buff Alias Settings. This setting applies globally and does not change when switching presets)
+- Individual mode added "Category Quick Monitor" for batch-monitoring all food or alchemy buffs with unified layout. Group mode added "Food" and "Alchemy" quick-setup buttons (Live Monitor → Buff Monitor → Category Quick Monitor)
+- Added Custom Panel for counter and buff monitoring, displayed uniformly as progress bars. Row gap, font size, etc. are configurable. Buffs without icons can be placed here
+- Changed text buff display format to show on a single row with configurable row gap. Supports reverting to old format
+- Introduced buff/damage-type state machines for counting special buffs triggered by accumulated damage, e.g. Phantasm Impact count, Transcendence trigger count (Live Monitor → Custom Panel → Add Counter)
+- Updated buff duration format with grouping and hour display
+- Added "Toggle Overlay Window" hotkey support (DPS Monitor → Settings → Hotkeys)
 
-**面板属性相关**
+**Character Stats Related**
 
-- 支持冷却缩减和冷却加速属性的展示
+- Added Cooldown Reduction and Cooldown Acceleration attribute display
 
-**注意**
+**Note**
 
-- 如果之前使用过 0.0.2/0.0.3 第一次使用 0.0.6-beta 需要清理 `%LOCALAPPDATA%\resonance-logs-cn` 目录下的 `resonance-logs-cn.db` 再重新启动应用
+- If you previously used v0.0.2/v0.0.3, first-time launch of v0.0.6-beta requires deleting `resonance-logs-cn.db` from `%LOCALAPPDATA%\resonance-logs-cn` and restarting the app
 
-**特别注意**
+**Important Notice**
 
-如果你自己修改了代码又不想提交 pr, 在分享给其他人的时候请把应用名/版本号等原版相关的信息都改掉, 不要带着原仓库的信息, 尤其是应用名+版本号
+If you modify the code and don't intend to submit a PR, please change the app name, version number, and other original-repo references before sharing. Do not distribute with original repository information, especially the app name + version number.
 
-**群号**
+**QQ Group**
 
 1084866292

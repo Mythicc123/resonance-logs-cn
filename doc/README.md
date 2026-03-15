@@ -1,22 +1,22 @@
-# Resonance Logs CN 文档
+# Resonance Logs CN Documentation
 
-功能说明与常见问题索引。
+Feature guides and FAQ index.
 
-## 功能文档
+## Feature Documentation
 
-| 文档 | 说明 |
-|------|------|
-| [DPS 检测](./features/dps.md) | 实时秒伤统计、真秒伤、历史记录、列设置 |
-| [Buff 监控](./features/monitor.md) | 技能 CD、Buff 监听、别名、分类快捷、自定义面板 |
+| Document | Description |
+|----------|-------------|
+| [DPS Meter](./features/dps.md) | Real-time DPS stats, true DPS, history, column settings |
+| [Buff Monitor](./features/monitor.md) | Skill CD, buff tracking, aliases, category shortcuts, custom panels |
 
-## 版本更新
+## Changelogs
 
-| 文档 | 说明 |
-|------|------|
-| [版本归档](./changelog/) | 各版本更新说明存档 |
+| Document | Description |
+|----------|-------------|
+| [Changelog Archive](./changelog/) | Archived release notes for each version |
 
-## 其他
+## Other
 
-| 文档 | 说明 |
-|------|------|
-| [常见问题 (FAQ)](./faq.md) | 安装、抓包、数据、错误排查 |
+| Document | Description |
+|----------|-------------|
+| [FAQ](./faq.md) | Installation, packet capture, data, troubleshooting |
