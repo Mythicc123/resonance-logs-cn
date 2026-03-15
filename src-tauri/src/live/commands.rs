@@ -170,7 +170,7 @@ pub fn set_monitored_skills(
     state_manager: tauri::State<'_, AppStateManager>,
 ) -> Result<(), String> {
     if skill_level_ids.len() > 10 {
-        return Err("最多监控10个技能".to_string());
+        return Err("Cannot monitor more than 10 skills".to_string());
     }
 
     info!("[skill-cd] set monitored skills: {:?}", skill_level_ids);

@@ -80,42 +80,42 @@ pub struct GpuSupport {
 }
 
 pub const MODULE_NAMES: &[(i32, &str)] = &[
-    (5500101, "基础攻击"),
-    (5500102, "高性能攻击"),
-    (5500103, "卓越攻击"),
-    (5500104, "卓越攻击-优选"),
-    (5500201, "基础治疗"),
-    (5500202, "高性能治疗"),
-    (5500203, "卓越辅助"),
-    (5500204, "卓越辅助-优选"),
-    (5500301, "基础防护"),
-    (5500302, "高性能守护"),
-    (5500303, "卓越守护"),
-    (5500304, "卓越守护-优选"),
+    (5500101, "Basic Attack"),
+    (5500102, "High-Perf Attack"),
+    (5500103, "Superior Attack"),
+    (5500104, "Superior Attack-Select"),
+    (5500201, "Basic Healing"),
+    (5500202, "High-Perf Healing"),
+    (5500203, "Superior Support"),
+    (5500204, "Superior Support-Select"),
+    (5500301, "Basic Defense"),
+    (5500302, "High-Perf Guardian"),
+    (5500303, "Superior Guardian"),
+    (5500304, "Superior Guardian-Select"),
 ];
 
 pub const MODULE_ATTR_NAMES: &[(i32, &str)] = &[
-    (1110, "力量加持"),
-    (1111, "敏捷加持"),
-    (1112, "智力加持"),
-    (1113, "特攻伤害"),
-    (1114, "精英打击"),
-    (1205, "特攻治疗加持"),
-    (1206, "专精治疗加持"),
-    (1407, "施法专注"),
-    (1408, "攻速专注"),
-    (1409, "暴击专注"),
-    (1410, "幸运专注"),
-    (1307, "抵御魔法"),
-    (1308, "抵御物理"),
-    (2104, "极-伤害叠加"),
-    (2105, "极-灵活身法"),
-    (2204, "极-生命凝聚"),
-    (2205, "极-急救措施"),
-    (2404, "极-生命波动"),
-    (2405, "极-生命汲取"),
-    (2406, "极-全队幸暴"),
-    (2304, "极-绝境守护"),
+    (1110, "STR Boost"),
+    (1111, "DEX Boost"),
+    (1112, "INT Boost"),
+    (1113, "Special ATK Damage"),
+    (1114, "Elite Strike"),
+    (1205, "Special Heal Boost"),
+    (1206, "Spec Heal Boost"),
+    (1407, "Cast Focus"),
+    (1408, "ATK Speed Focus"),
+    (1409, "Crit Focus"),
+    (1410, "Luck Focus"),
+    (1307, "Magic Resist"),
+    (1308, "Physical Resist"),
+    (2104, "Ultra-Damage Stack"),
+    (2105, "Ultra-Agile Movement"),
+    (2204, "Ultra-Life Condense"),
+    (2205, "Ultra-First Aid"),
+    (2404, "Ultra-Life Surge"),
+    (2405, "Ultra-Life Drain"),
+    (2406, "Ultra-Team Luck Crit"),
+    (2304, "Ultra-Last Stand"),
 ];
 
 pub fn parse_modules_from_vdata(v_data: &blueprotobuf::CharSerialize) -> Vec<ModuleInfo> {
@@ -127,7 +127,7 @@ pub fn parse_modules_from_vdata(v_data: &blueprotobuf::CharSerialize) -> Vec<Mod
     let mod_infos = if let Some(mod_data) = &v_data.r#mod {
         &mod_data.mod_infos
     } else {
-        log::warn!("v_data 中没有 mod_infos");
+        log::warn!("No mod_infos found in v_data");
         return modules;
     };
 
@@ -146,13 +146,13 @@ pub fn parse_modules_from_vdata(v_data: &blueprotobuf::CharSerialize) -> Vec<Mod
 
                 let config_id = item.config_id.unwrap_or(0);
                 if !module_name_map.contains_key(&config_id) {
-                    log::info!("跳过未知模组 config_id: {}", config_id);
+                    log::info!("Skipping unknown module config_id: {}", config_id);
                     continue;
                 }
 
                 let module_name = module_name_map
                     .get(&config_id)
-                    .unwrap_or(&"未知模组")
+                    .unwrap_or(&"Unknown Module")
                     .to_string();
                 let uuid = item.uuid.unwrap_or(0) as i32;
                 let quality = item.quality.unwrap_or(0);
@@ -160,7 +160,7 @@ pub fn parse_modules_from_vdata(v_data: &blueprotobuf::CharSerialize) -> Vec<Mod
                 let init_link_nums = if let Some(info) = mod_infos.get(key) {
                     &info.init_link_nums
                 } else {
-                    log::info!("未找到模组属性值 key: {}", key);
+                    log::info!("Module attr value not found for key: {}", key);
                     continue;
                 };
 
@@ -173,7 +173,7 @@ pub fn parse_modules_from_vdata(v_data: &blueprotobuf::CharSerialize) -> Vec<Mod
                     let attr_id = *part_id;
                     let attr_name = attr_name_map
                         .get(&attr_id)
-                        .unwrap_or(&"未知属性")
+                        .unwrap_or(&"Unknown Attr")
                         .to_string();
                     let attr_value = init_link_nums[i];
 
@@ -195,7 +195,7 @@ pub fn parse_modules_from_vdata(v_data: &blueprotobuf::CharSerialize) -> Vec<Mod
         }
     }
 
-    log::info!("解析到 {} 个模组", modules.len());
+    log::info!("Parsed {} modules", modules.len());
     modules
 }
 
@@ -307,7 +307,7 @@ fn prefilter_modules_by_total_scores(
         })
         .collect();
 
-    module_scores.sort_by(|a, b| b.1.cmp(&a.1)); // 降序排序
+    module_scores.sort_by(|a, b| b.1.cmp(&a.1)); // descending order
     module_scores
         .into_iter()
         .take(max_count)

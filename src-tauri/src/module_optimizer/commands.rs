@@ -28,7 +28,7 @@ fn load_latest_char_serialize() -> Result<CharSerialize, String> {
     })?;
 
     log::info!(
-        "加载最新玩家数据: vdata_bytes_len={:?}",
+        "Loading latest player data: vdata_bytes_len={:?}",
         vdata_bytes.as_ref().map(|b| b.len())
     );
 
@@ -56,7 +56,7 @@ pub async fn optimize_latest_modules(
     use_gpu: Option<bool>,
 ) -> Result<Vec<ModuleSolution>, String> {
     log::info!(
-        "收到优化请求: target={:?}, exclude={:?}, min_req={:?}, gpu={:?}",
+        "Received optimize request: target={:?}, exclude={:?}, min_req={:?}, gpu={:?}",
         target_attributes,
         exclude_attributes,
         min_attr_requirements,
@@ -79,14 +79,14 @@ pub async fn optimize_latest_modules(
     };
 
     log::info!(
-        "模组预筛: {} -> {} (target_attrs: {:?})",
+        "Module pre-filter: {} -> {} (target_attrs: {:?})",
         original_count,
         modules.len(),
         target_attributes
     );
 
     if modules.len() < 4 {
-        return Err("需要至少 4 个模组".to_string());
+        return Err("At least 4 modules required".to_string());
     }
 
     let max_workers = std::thread::available_parallelism()
@@ -152,7 +152,7 @@ pub fn greedy_optimize_modules(
     local_search_iterations: Option<i32>,
 ) -> Result<Vec<ModuleSolution>, String> {
     if modules.len() < 4 {
-        return Err("需要至少 4 个模组".to_string());
+        return Err("At least 4 modules required".to_string());
     }
 
     let result = optimize_modules(
