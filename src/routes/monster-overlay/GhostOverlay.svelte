@@ -45,24 +45,24 @@
     };
 
     if (overlayVisibility.showSkillCdGroup) {
-      pushArea("skillCdGroup", "技能CD区", overlayPositions.skillCdGroup.x, overlayPositions.skillCdGroup.y, 280, 118, overlaySizes.skillCdGroupScale);
+      pushArea("skillCdGroup", "Skill CD Zone", overlayPositions.skillCdGroup.x, overlayPositions.skillCdGroup.y, 280, 118, overlaySizes.skillCdGroupScale);
     }
     if (overlayVisibility.showResourceGroup) {
-      pushArea("resourceGroup", "资源区", overlayPositions.resourceGroup.x, overlayPositions.resourceGroup.y, 250, 90, overlaySizes.resourceGroupScale);
+      pushArea("resourceGroup", "Resource Zone", overlayPositions.resourceGroup.x, overlayPositions.resourceGroup.y, 250, 90, overlaySizes.resourceGroupScale);
     }
     if (overlayVisibility.showPanelAttrGroup) {
-      pushArea("panelAttrGroup", "角色属性区", overlayPositions.panelAttrGroup.x, overlayPositions.panelAttrGroup.y, 220, 130, overlaySizes.panelAttrGroupScale);
+      pushArea("panelAttrGroup", "Character Stats Zone", overlayPositions.panelAttrGroup.x, overlayPositions.panelAttrGroup.y, 220, 130, overlaySizes.panelAttrGroupScale);
     }
     if (overlayVisibility.showCustomPanelGroup) {
-      pushArea("customPanelGroup", "自定义面板区", overlayPositions.customPanelGroup.x, overlayPositions.customPanelGroup.y, 220, 120, overlaySizes.customPanelGroupScale);
+      pushArea("customPanelGroup", "Custom Panel Zone", overlayPositions.customPanelGroup.x, overlayPositions.customPanelGroup.y, 220, 120, overlaySizes.customPanelGroupScale);
     }
 
-    pushArea("textBuffPanel", "无图标Buff区", overlayPositions.textBuffPanel.x, overlayPositions.textBuffPanel.y, 240, 130, overlaySizes.textBuffPanelScale);
+    pushArea("textBuffPanel", "Text Buff Zone", overlayPositions.textBuffPanel.x, overlayPositions.textBuffPanel.y, 240, 130, overlaySizes.textBuffPanelScale);
 
     if (monsterMonitor.hateListEnabled) {
       pushArea(
         "monsterHatePanel",
-        "仇恨区",
+        "Hate Zone",
         monsterOverlayPositions.hatePanel.x,
         monsterOverlayPositions.hatePanel.y,
         240,
@@ -75,13 +75,13 @@
       for (const group of profile.buffGroups) {
         const width = Math.max(120, group.columns * (group.iconSize + group.gap));
         const height = Math.max(90, group.rows * (group.iconSize + group.gap) + 26);
-        pushArea(`buffGroup:${group.id}`, `${group.name}${group.monitorAll ? "（全部）" : ""}`, group.position.x, group.position.y, width, height);
+        pushArea(`buffGroup:${group.id}`, `${group.name}${group.monitorAll ? " (All)" : ""}`, group.position.x, group.position.y, width, height);
       }
     } else if (profile.individualMonitorAllGroup) {
       const group = profile.individualMonitorAllGroup;
       const width = Math.max(120, group.columns * (group.iconSize + group.gap));
       const height = Math.max(90, group.rows * (group.iconSize + group.gap) + 26);
-      pushArea(`individualAllGroup:${group.id}`, `${group.name}（全部）`, group.position.x, group.position.y, width, height);
+      pushArea(`individualAllGroup:${group.id}`, `${group.name} (All)`, group.position.x, group.position.y, width, height);
     }
 
     for (const [baseId, point] of Object.entries(overlayPositions.iconBuffPositions)) {
@@ -91,7 +91,7 @@
 
     for (const [categoryKey, point] of Object.entries(overlayPositions.categoryIconPositions ?? {})) {
       const size = overlaySizes.categoryIconSizes?.[categoryKey as keyof typeof overlaySizes.categoryIconSizes] ?? 44;
-      pushArea(`category:${categoryKey}`, `分类 ${categoryKey}`, point.x, point.y, size, size);
+      pushArea(`category:${categoryKey}`, `Category ${categoryKey}`, point.x, point.y, size, size);
     }
 
     return next;

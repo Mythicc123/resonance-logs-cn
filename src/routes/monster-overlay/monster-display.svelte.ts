@@ -40,7 +40,7 @@ function buildPlaceholderRows(now: number): TextBuffDisplay[] {
   return [
     {
       key: "monster_preview_empty",
-      label: "在怪物监控页选择 Buff",
+      label: "Select Buff on Monster Monitor page",
       valueText: "--",
       progressPercent: 0,
       showProgress: false,
@@ -129,7 +129,7 @@ export function updateMonsterDisplay() {
     if (buffRows.length === 0) continue;
     nextSections.push({
       bossUid,
-      title: `目标 ${bossUid}`,
+      title: `Target ${bossUid}`,
       rows: buffRows,
     });
   }
@@ -143,7 +143,7 @@ export function updateMonsterDisplay() {
       if (hateRows.length === 0) continue;
       nextHateSections.push({
         bossUid,
-        title: `目标 ${bossUid}`,
+        title: `Target ${bossUid}`,
         rows: hateRows,
       });
     }
@@ -152,7 +152,7 @@ export function updateMonsterDisplay() {
   if (nextSections.length === 0 && monsterRuntime.isEditing) {
     nextSections.push({
       bossUid: 0,
-      title: "预览",
+      title: "Preview",
       rows: buildPlaceholderRows(now),
       isPlaceholder: true,
     });
@@ -165,7 +165,7 @@ export function updateMonsterDisplay() {
   ) {
     nextHateSections.push({
       bossUid: 0,
-      title: "目标 0",
+      title: "Target 0",
       rows: buildHatePlaceholderRows(),
       isPlaceholder: true,
     });

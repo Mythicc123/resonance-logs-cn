@@ -29,7 +29,7 @@
       startDrag(e, { kind: "group", key: "customPanelGroup" }, groupPos)}
   >
     {#if editing}
-      <div class="group-tag">自定义面板区</div>
+      <div class="group-tag">Custom Panel Zone</div>
     {/if}
 
     <div class="custom-panel-list" style:gap={`${styleConfig.gap}px`}>

@@ -30,7 +30,7 @@
     onpointerdown={(e) => startDrag(e, { kind: "group", key: "textBuffPanel" }, groupPos)}
   >
     {#if editing}
-      <div class="group-tag">无图标Buff区</div>
+      <div class="group-tag">Text Buff Zone</div>
     {/if}
 
     {#each buffs as buff (buff.key)}

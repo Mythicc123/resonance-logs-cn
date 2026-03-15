@@ -35,7 +35,7 @@
   onpointerdown={(e) => startDrag(e, { kind: "group", key: "skillCdGroup" }, groupPos)}
 >
   {#if editing}
-    <div class="group-tag">技能CD区</div>
+    <div class="group-tag">Skill CD Zone</div>
   {/if}
 
   <div class="skill-cd-grid">

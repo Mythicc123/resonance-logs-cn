@@ -19,7 +19,7 @@
     isSelected = () => false,
     isDisabled = () => false,
     getStatusLabel = () => null,
-    emptyMessage = "没有匹配的 Buff",
+    emptyMessage = "No matching Buffs",
     minColumnWidth = 180,
   }: Props = $props();
 </script>

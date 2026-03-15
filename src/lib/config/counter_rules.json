@@ -1,7 +1,7 @@
 [
   {
     "ruleId": 1,
-    "name": "超然TriggerCounter",
+    "name": "Transcendence Trigger Counter",
     "trigger": {
       "damageBySkillKeySelfTarget": [
         22140403
@@ -14,7 +14,7 @@
   },
   {
     "ruleId": 2,
-    "name": "幻想冲击Stack数-30-Frost Staff",
+    "name": "Phantasm Impact Stacks-30-Frost Staff",
     "trigger": {
       "damageBySkillKey": [
         2203110203
@@ -27,7 +27,7 @@
   },
   {
     "ruleId": 3,
-    "name": "幻想冲击Stack数-30-Guitar",
+    "name": "Phantasm Impact Stacks-30-Guitar",
     "trigger": {
       "damageBySkillKey": [
         2203111103

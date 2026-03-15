@@ -30,7 +30,7 @@
     onpointerdown={(e) => startDrag(e, { kind: "group", key: "panelAttrGroup" }, groupPos)}
   >
     {#if editing}
-      <div class="group-tag">角色属性区</div>
+      <div class="group-tag">Character Stats Zone</div>
     {/if}
 
     <div class="panel-attr-list" style:gap={`${sizes.panelAttrGap}px`}>

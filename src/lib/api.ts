@@ -260,7 +260,7 @@ export const setBuffCounterRules = (rules: CounterRule[]): Promise<void> =>
   invoke("set_buff_counter_rules", { rules });
 
 // =========================
-// 模组计算器相关 API
+// Module calculator related API
 // =========================
 
 export type ModulePart = {

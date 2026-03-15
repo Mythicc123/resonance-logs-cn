@@ -262,7 +262,7 @@ export function getCustomPanelDisplayRow(
     key: `inline_counter_${entry.id}`,
     label: entry.label,
     valueText: active ? formatTimerText(remainingMs) : "--",
-    metaText: active ? "冷却中" : "冷却中",
+    metaText: active ? "Cooling Down" : "Cooling Down",
     progressPercent: getBuffRemainPercent(linkedBuff, now),
     showProgress: active && Boolean(linkedBuff && linkedBuff.durationMs > 0),
   };
@@ -272,7 +272,7 @@ export function ensureBuffGroups(profile: SkillMonitorProfile): BuffGroup[] {
   const groups = profile.buffGroups ?? [];
   return groups.map((group, index) => ({
     id: group.id ?? `group_${index + 1}`,
-    name: group.name ?? `分组 ${index + 1}`,
+    name: group.name ?? `Group ${index + 1}`,
     buffIds: group.buffIds ?? [],
     priorityBuffIds: group.priorityBuffIds ?? [],
     monitorAll: group.monitorAll ?? false,
@@ -294,7 +294,7 @@ export function ensureIndividualMonitorAllGroup(
   if (!group) return null;
   return {
     id: group.id ?? "individual_all_group",
-    name: group.name ?? "全部 Buff",
+    name: group.name ?? "All Buffs",
     buffIds: [],
     priorityBuffIds: group.priorityBuffIds ?? [],
     monitorAll: true,
@@ -318,7 +318,7 @@ export function ensureInlineBuffEntries(
     sourceId: entry.sourceId,
     label:
       entry.sourceType === "counter"
-        ? (entry.label ?? `计数器 ${entry.sourceId}`)
+        ? (entry.label ?? `Counter ${entry.sourceId}`)
         : (entry.label ?? ""),
     format: entry.format ?? "timer",
   }));

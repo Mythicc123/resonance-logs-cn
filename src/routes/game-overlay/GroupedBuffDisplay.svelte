@@ -20,7 +20,7 @@
 
 {#if groups.length === 0 && editing}
   <div class="overlay-group grouped-empty-tip" style:left="40px" style:top="310px">
-    请先在技能监控页创建 Buff 分组
+    Create Buff groups in Live Monitor first
   </div>
 {/if}
 
@@ -31,7 +31,7 @@
       {group}
       buffs={groupBuffs}
       editable={editing}
-      tagText={`${group.name}${group.monitorAll ? "（全部）" : ""}`}
+      tagText={`${group.name}${group.monitorAll ? " (All)" : ""}`}
       onPointerDown={(e) => startDrag(e, { kind: "buffGroup", groupId: group.id }, group.position)}
       onResizePointerDown={(e) =>
         startResize(e, { kind: "buffGroup", groupId: group.id }, group.iconSize)}

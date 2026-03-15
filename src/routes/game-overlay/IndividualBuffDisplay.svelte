@@ -54,7 +54,7 @@
     {group}
     buffs={allGroupBuffs.slice(0, maxVisible)}
     editable={editing}
-    tagText={`${group.name}（全部）`}
+    tagText={`${group.name} (All)`}
     onPointerDown={(e) => startDrag(e, { kind: "individualAllGroup" }, group.position)}
     onResizePointerDown={(e) =>
       startResize(e, { kind: "individualAllGroup" }, group.iconSize)}

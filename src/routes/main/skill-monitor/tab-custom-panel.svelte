@@ -53,7 +53,7 @@
   }
 
   function inlineBuffStatusLabel(buffId: number): string | null {
-    return hasInlineBuffEntry(buffId) ? "已添加" : null;
+    return hasInlineBuffEntry(buffId) ? "Added" : null;
   }
 </script>
 
@@ -152,7 +152,7 @@
         onSelect={(buffId) => addInlineBuffEntry("buff", buffId)}
         isDisabled={hasInlineBuffEntry}
         getStatusLabel={inlineBuffStatusLabel}
-        emptyMessage="没有匹配的 Buff"
+        emptyMessage="No matching Buffs"
       />
     {/if}
   </div>
