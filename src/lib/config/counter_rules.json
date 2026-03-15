@@ -1,9 +1,11 @@
 [
   {
     "ruleId": 1,
-    "name": "超然触发计数",
+    "name": "超然TriggerCounter",
     "trigger": {
-      "damageBySkillKeySelfTarget": [22140403]
+      "damageBySkillKeySelfTarget": [
+        22140403
+      ]
     },
     "linkedBuffId": 2202671,
     "threshold": 60,
@@ -12,9 +14,11 @@
   },
   {
     "ruleId": 2,
-    "name": "幻想冲击层数-30-冰法",
+    "name": "幻想冲击Stack数-30-Frost Staff",
     "trigger": {
-      "damageBySkillKey": [2203110203]
+      "damageBySkillKey": [
+        2203110203
+      ]
     },
     "linkedBuffId": 3002011,
     "threshold": 30,
@@ -23,9 +27,11 @@
   },
   {
     "ruleId": 3,
-    "name": "幻想冲击层数-30-吉他",
+    "name": "幻想冲击Stack数-30-Guitar",
     "trigger": {
-      "damageBySkillKey": [2203111103]
+      "damageBySkillKey": [
+        2203111103
+      ]
     },
     "linkedBuffId": 3002011,
     "threshold": 30,
