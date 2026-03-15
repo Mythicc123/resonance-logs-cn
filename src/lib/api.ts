@@ -185,10 +185,6 @@ export type LiveDataPayload = {
   entities: RawEntityData[];
 };
 
-export type BossDeathPayload = {
-  bossName: string;
-};
-
 export type SceneChangePayload = {
   sceneName: string;
 };
@@ -199,9 +195,6 @@ export const onEncounterUpdate = (handler: (event: Event<EncounterUpdatePayload>
 
 export const onLiveData = (handler: (event: Event<LiveDataPayload>) => void): Promise<UnlistenFn> =>
   listen<LiveDataPayload>("live-data", handler);
-
-export const onBossDeath = (handler: (event: Event<BossDeathPayload>) => void): Promise<UnlistenFn> =>
-  listen<BossDeathPayload>("boss-death", handler);
 
 export const onSceneChange = (handler: (event: Event<SceneChangePayload>) => void): Promise<UnlistenFn> =>
   listen<SceneChangePayload>("scene-change", handler);
