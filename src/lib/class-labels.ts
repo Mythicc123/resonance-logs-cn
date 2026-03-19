@@ -11,6 +11,7 @@ const CN_CLASS_TO_EN: Record<string, string> = {
   "神射手": "Marksman",
   "神盾骑士": "Shield Knight",
   "灵魂乐手": "Beat Performer",
+  "赤炎狂战士": "Flame Berserker",
 };
 
 const CN_SPEC_TO_EN: Record<string, string> = {
@@ -19,6 +20,8 @@ const CN_SPEC_TO_EN: Record<string, string> = {
   "寒冰": "Frost",
   "极寒": "Extreme Cold",
   "射线": "Frostbeam",
+  "无相流": "Voidflame",
+  "赤红流": "Blazecrimson",
   // Blade specs
   "月刃": "Moonstrike",
   "雷影": "Stormblade",
