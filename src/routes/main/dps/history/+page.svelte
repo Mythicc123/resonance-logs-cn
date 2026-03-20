@@ -165,7 +165,8 @@
 			const filterPayload: EncounterFiltersDto = {
 				bossNames: selectedBosses.length > 0 ? selectedBosses : null,
 				playerName: null,
-				encounterNames: null,
+				encounterNames:
+					selectedEncounters.length > 0 ? selectedEncounters : null,
 				playerNames:
 					selectedPlayerNames.length > 0 ? selectedPlayerNames : null,
 				dateFromMs: null,
@@ -175,6 +176,7 @@
 
 			const hasFilters =
 				filterPayload.bossNames !== null ||
+				filterPayload.encounterNames !== null ||
 				filterPayload.playerNames !== null ||
 				filterPayload.isFavorite !== null;
 
@@ -237,6 +239,12 @@
 		loadEncounters(0);
 	}
 
+	function removeEncounterFilter(encounterName: string) {
+		selectedEncounters = selectedEncounters.filter(
+			(name) => name !== encounterName,
+		);
+		loadEncounters(0);
+	}
 	function removePlayerNameFilter(playerName: string) {
 		selectedPlayerNames = selectedPlayerNames.filter(
 			(name) => name !== playerName,
@@ -447,7 +455,7 @@
 						<span class="text-muted-foreground/70">Scene:</span>
 						{encounter}
 						<button
-							onclick={() => removeBossFilter(encounter)}
+							onclick={() => removeEncounterFilter(encounter)}
 							class="text-muted-foreground/70 hover:text-destructive transition-colors"
 							aria-label={`Remove ${encounter} filter`}
 						>
