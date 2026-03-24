@@ -85,7 +85,7 @@
             "./WinDivert64.sys",
             "./meter-data/"
         ],
-        "createUpdaterArtifacts": true
+        "createUpdaterArtifacts": false
     },
     "plugins": {
         "updater": {
