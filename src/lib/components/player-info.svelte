@@ -3,7 +3,7 @@
    * @file This component displays information about a player, including their class, name, and ability score.
    */
   import { SETTINGS } from "$lib/settings-store";
-  import { copyToClipboard, getClassIcon, tooltip } from "$lib/utils.svelte";
+  import { copyToClipboard, getClassIcon, onClassIconError, tooltip } from "$lib/utils.svelte";
   import AbbreviatedNumber from "./abbreviated-number.svelte";
   import { normalizeNameDisplaySetting } from "$lib/name-display";
   import { formatClassSpecLabel, toClassLabel } from "$lib/class-labels";
@@ -77,6 +77,7 @@
     class="size-5 object-contain"
     src={getClassIcon(classIconDisplay())}
     alt={classDisplay}
+    onerror={onClassIconError}
   />
 
   <!-- svelte-ignore a11y_no_static_element_interactions -->
