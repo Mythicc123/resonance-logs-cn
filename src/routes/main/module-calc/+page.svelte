@@ -57,7 +57,7 @@
       MODULE_CALC.modules = await getLatestModules();
       MODULE_CALC.moduleCount = MODULE_CALC.modules.length;
     } catch (e) {
-      MODULE_CALC.error = (e as Error)?.message ?? "Failed to fetch mods";
+      MODULE_CALC.error = (e as Error)?.message ?? "Failed to load modules. Make sure you've captured some gameplay data first.";
     } finally {
       MODULE_CALC.loading = false;
     }

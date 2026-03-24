@@ -4,7 +4,7 @@ pub mod module_optimizer;
 mod packets;
 
 use crate::build_app::build_and_run;
-use log::{info, warn};
+use log::{error, info, warn};
 use specta_typescript::{BigIntExportBehavior, Typescript};
 #[cfg(windows)]
 use std::process::{Command, Stdio};
@@ -125,7 +125,11 @@ pub fn run() {
             // Initialize database and background writer early to avoid startup races where
             // multiple background tasks/commands trigger migrations concurrently.
             if let Err(e) = crate::database::init_db() {
-                warn!(target: "app::db", "Failed to initialize database: {}", e);
+                error!(target: "app::db", "Fatal: failed to initialize database: {}", e);
+                // Return an error to prevent the app from starting in a broken state.
+                // Commands that depend on the DB will return "DB thread not initialized"
+                // if we silently continue, leaving the user confused.
+                return Err(Box::new(e) as Box<dyn std::error::Error>);
             }
             crate::database::startup_maintenance();
 
