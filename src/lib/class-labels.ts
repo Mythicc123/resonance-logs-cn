@@ -1,41 +1,64 @@
 // Maps from internal EN key → display EN label (identity, kept for tooltip use)
 // CN spec names received from game packet are mapped to English here.
 
+const CN_CLASS_TO_EN: Record<string, string> = {
+  "青岚骑士": "Wind Knight",
+  "冰法": "Frost Mage",
+  "冰魔导师": "Frost Mage",
+  "雷影剑士": "Stormblade",
+  "森语者": "Verdant Oracle",
+  "巨刃守护者": "Heavy Guardian",
+  "神射手": "Marksman",
+  "神盾骑士": "Shield Knight",
+  "灵魂乐手": "Beat Performer",
+};
+
 const CN_SPEC_TO_EN: Record<string, string> = {
   // Ice Mage specs
-  "冰矛": "Icicle Spear",
+  "冰矛": "Icicle",
   "寒冰": "Frost",
   "极寒": "Extreme Cold",
+  "射线": "Frostbeam",
   // Blade specs
-  "月刃": "Moonblade",
-  "雷影": "Thunder Shadow",
+  "月刃": "Moonstrike",
+  "雷影": "Stormblade",
   "大破灭": "Great Destruction",
+  "居合": "Iaido",
   // Smite / Holy specs
   "惩击": "Smite",
+  "惩戒": "Smite",
   "圣光": "Holy Light",
   "先锋": "Vanguard",
+  "协奏": "Concerto",
   // Guard / Tank specs
-  "格挡": "Parry",
+  "格挡": "Block",
   "砂岩": "Sandstone",
-  "岩御": "Earth Shield",
+  "岩御": "Earthfort",
+  "岩盾": "Earthfort",
+  "防盾": "Recovery",
   // Ranger specs
-  "弹无虚发": "Marksman",
+  "弹无虚发": "Falconry",
   "光意": "Light Intent",
   "幻影": "Phantom",
+  "鹰弓": "Falconry",
+  "狼弓": "Wildpack",
+  "空枪": "Skyward",
   // Bard specs
   "升格": "Ascendant",
   "烈焰": "Blazing Flame",
   "激涌": "Surge",
+  "狂音": "Dissonance",
   // Nature / Healer specs
   "狂野": "Feral",
   "繁盛": "Flourishing",
   "再生": "Regeneration",
+  "愈合": "Lifebind",
+  "光盾": "Shield",
   // Dream / Void specs
   "虚蚀": "Void Corrosion",
   "幻梦": "Dream Phantom",
   "寂灭": "Extinction",
   // Generic fallback spec names seen in packets
-  "愈合": "Healing",
   "森语": "Forest Voice",
 };
 
@@ -89,8 +112,11 @@ export function toBossName(monsterName: string): string {
 }
 
 export function toClassLabel(className: string): string {
-  // Internal class names are already English — return as-is
-  return className ?? "";
+  if (!className) return "";
+  if (/[\u4e00-\u9fff]/.test(className)) {
+    return CN_CLASS_TO_EN[className] ?? className;
+  }
+  return className;
 }
 
 export function toSpecLabel(specName: string): string {
