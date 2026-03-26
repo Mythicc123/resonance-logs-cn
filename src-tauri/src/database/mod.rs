@@ -152,18 +152,19 @@ where
         .map_err(|_| "failed to receive DB task result".to_string())?
 }
 
-pub fn db_send<F>(f: F)
+pub fn db_send<F>(f: F) -> Result<(), String>
 where
     F: FnOnce(&mut SqliteConnection) + Send + 'static,
 {
-    let Some(sender) = DB_SENDER.get() else {
-        log::error!(target: "app::db", "db_send_failed reason=not_initialized");
-        return;
-    };
+    let sender = DB_SENDER
+        .get()
+        .ok_or_else(|| "DB thread not initialized".to_string())?;
 
-    if sender.send(Box::new(f)).is_err() {
-        log::error!(target: "app::db", "db_send_failed reason=channel_closed");
-    }
+    sender
+        .send(Box::new(f))
+        .map_err(|_| "DB thread channel closed".to_string())?;
+
+    Ok(())
 }
 
 pub fn init_db() -> Result<(), DbInitError> {
@@ -203,7 +204,7 @@ pub fn init_db() -> Result<(), DbInitError> {
 
 /// Schedules startup maintenance for encounter history without blocking app setup.
 pub fn startup_maintenance() {
-    db_send(|conn| {
+    if let Err(e) = db_send(|conn| {
         if let Err(error) = prune_and_reindex_encounters(conn, MAX_ENCOUNTER_HISTORY) {
             log::warn!(
                 target: "app::db",
@@ -211,7 +212,9 @@ pub fn startup_maintenance() {
                 error
             );
         }
-    });
+    }) {
+        log::error!(target: "app::db", "startup_maintenance_db_send_failed error={}", e);
+    }
 }
 
 fn set_foreign_keys(conn: &mut SqliteConnection, enabled: bool) -> Result<(), String> {
@@ -395,7 +398,7 @@ fn prune_and_reindex_encounters(conn: &mut SqliteConnection, keep: i64) -> Resul
 }
 
 pub fn flush_playerdata(player_id: i64, last_seen_ms: i64, vdata_bytes: Vec<u8>) {
-    db_send(move |conn| {
+    if let Err(e) = db_send(move |conn| {
         use sch::detailed_playerdata::dsl as dp;
 
         let insert = m::NewDetailedPlayerData {
@@ -417,7 +420,9 @@ pub fn flush_playerdata(player_id: i64, last_seen_ms: i64, vdata_bytes: Vec<u8>)
         if let Err(e) = result {
             log::warn!(target: "app::db", "flush_playerdata_failed error={}", e);
         }
-    })
+    }) {
+        log::error!(target: "app::db", "flush_playerdata_db_send_failed error={}", e);
+    }
 }
 
 pub fn save_encounter(encounter: &Encounter, metadata: &EncounterMetadata) {
@@ -426,7 +431,7 @@ pub fn save_encounter(encounter: &Encounter, metadata: &EncounterMetadata) {
 
     let encounter = encounter.clone();
     let metadata = metadata.clone();
-    db_send(move |conn| {
+    if let Err(e) = db_send(move |conn| {
         let combat_entities: HashMap<i64, Entity> = encounter
             .entity_uid_to_entity
             .iter()
@@ -500,7 +505,9 @@ pub fn save_encounter(encounter: &Encounter, metadata: &EncounterMetadata) {
         if let Err(e) = result {
             log::warn!(target: "app::db", "save_encounter_tx_failed error={}", e);
         }
-    })
+    }) {
+        log::error!(target: "app::db", "save_encounter_db_send_failed error={}", e);
+    }
 }
 
 pub fn load_encounter_data(encounter_id: i32) -> Result<HashMap<i64, Entity>, String> {
