@@ -25,6 +25,10 @@
 
 **Requirements:** SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05, SYNC-06, SYNC-07, SYNC-08
 
+**Plans:**
+- [ ] 02-01-PLAN.md — Port training_dummy.rs and bootstrap_snapshot.rs modules from parent, register in live/mod.rs
+- [ ] 02-02-PLAN.md — Add Tauri commands (start/stop_training_dummy, save_and_apply_monitor_runtime_snapshot), wire bootstrap_snapshot in live_main.rs, add greedy_optimize_modules to specta collection
+
 **Success criteria:**
 1. Monitor settings persist between app restarts (skills, buffs, panel attrs, counter rules)
 2. Training dummy encounters are detected and tracked separately
