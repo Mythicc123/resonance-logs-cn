@@ -184,6 +184,7 @@ pub struct BossBuffMonitors {
     pub monitors: HashMap<i64, BuffMonitor>,
     pub monitored_buff_ids: HashSet<i32>,
     pub self_applied_buff_ids: HashSet<i32>,
+    pub enabled: bool,
 }
 
 impl BossBuffMonitors {
@@ -201,6 +202,24 @@ impl BossBuffMonitors {
 
         for monitor in self.monitors.values_mut() {
             monitor.monitored_buff_ids = self.monitored_buff_ids.clone();
+            monitor.self_applied_buff_ids = self.self_applied_buff_ids.clone();
+        }
+    }
+
+    pub fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
+    }
+
+    pub fn set_global_ids(&mut self, global_ids: Vec<i32>) {
+        self.monitored_buff_ids = global_ids.into_iter().collect();
+        for monitor in self.monitors.values_mut() {
+            monitor.monitored_buff_ids = self.monitored_buff_ids.clone();
+        }
+    }
+
+    pub fn set_self_applied_ids(&mut self, self_applied_ids: Vec<i32>) {
+        self.self_applied_buff_ids = self_applied_ids.into_iter().collect();
+        for monitor in self.monitors.values_mut() {
             monitor.self_applied_buff_ids = self.self_applied_buff_ids.clone();
         }
     }

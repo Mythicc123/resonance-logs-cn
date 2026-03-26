@@ -1,5 +1,7 @@
 use crate::WINDOW_LIVE_LABEL;
 use crate::live::state::{AppStateManager, StateEvent};
+use crate::live::bootstrap_snapshot::{MonitorRuntimeSnapshot, save_monitor_runtime_snapshot};
+use crate::live::training_dummy::TrainingDummyMonsterId;
 use log::info;
 use tauri::Manager;
 use window_vibrancy::{apply_blur, clear_blur};
@@ -215,5 +217,36 @@ pub fn set_buff_counter_rules(
 ) -> Result<(), String> {
     info!(target: "app::live", "[buff-counter] set rules: {}", rules.len());
     state_manager.set_buff_counter_rules(rules)?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn start_training_dummy(
+    monster_id: i32,
+    state_manager: tauri::State<'_, AppStateManager>,
+) -> Result<(), String> {
+    let monster_id = TrainingDummyMonsterId::try_from(monster_id).map_err(|err| err.to_string())?;
+    state_manager.start_training_dummy(monster_id)?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn stop_training_dummy(state_manager: tauri::State<'_, AppStateManager>) -> Result<(), String> {
+    state_manager.stop_training_dummy()?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn save_and_apply_monitor_runtime_snapshot(
+    snapshot: MonitorRuntimeSnapshot,
+    app_handle: tauri::AppHandle,
+    state_manager: tauri::State<'_, AppStateManager>,
+) -> Result<(), String> {
+    let snapshot = snapshot.normalize()?;
+    save_monitor_runtime_snapshot(&app_handle, &snapshot)?;
+    state_manager.apply_monitor_runtime_snapshot(snapshot)?;
     Ok(())
 }

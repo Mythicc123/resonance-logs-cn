@@ -1,5 +1,7 @@
 use crate::database::{EncounterMetadata, PlayerNameEntry, now_ms, save_encounter};
 use crate::live::buff_monitor::{BossBuffMonitors, BuffMonitor};
+use crate::live::training_dummy::{TrainingDummyMonsterId, TrainingDummyRuntime};
+use crate::live::bootstrap_snapshot::MonitorRuntimeSnapshot;
 use crate::live::commands_models::{
     CounterUpdateState, FightResourceState, PanelAttrState, SkillCdState,
 };
@@ -73,6 +75,8 @@ pub struct AppState {
     pub pending_auto_reset: Option<Instant>,
     /// UIDs whose display names have already been pushed to the monster overlay.
     pub sent_overlay_uids: HashSet<i64>,
+    /// Training dummy tracking state.
+    pub training_dummy: TrainingDummyRuntime,
 }
 
 #[derive(Debug)]
@@ -119,6 +123,9 @@ pub enum LiveControlCommand {
     SetMonitoredSkills(Vec<i32>),
     SetMonitorAllBuff(bool),
     SetBuffCounterRules(Vec<CounterRule>),
+    StartTrainingDummy(TrainingDummyMonsterId),
+    StopTrainingDummy,
+    ApplyMonitorRuntimeSnapshot(MonitorRuntimeSnapshot),
 }
 
 impl AppState {
@@ -139,6 +146,7 @@ impl AppState {
             battle_state: BattleStateMachine::default(),
             pending_auto_reset: None,
             sent_overlay_uids: HashSet::new(),
+            training_dummy: TrainingDummyRuntime::default(),
         }
     }
 
@@ -472,6 +480,15 @@ impl AppStateManager {
             }
             LiveControlCommand::SetBuffCounterRules(rules) => {
                 state.local_monitor.counter_tracker.set_rules(rules);
+            }
+            LiveControlCommand::StartTrainingDummy(monster_id) => {
+                state.training_dummy.arm(monster_id);
+            }
+            LiveControlCommand::StopTrainingDummy => {
+                state.training_dummy.clear();
+            }
+            LiveControlCommand::ApplyMonitorRuntimeSnapshot(snapshot) => {
+                self.apply_monitor_runtime_snapshot_with_state(state, snapshot);
             }
         }
     }
@@ -1042,6 +1059,31 @@ impl AppStateManager {
 
     pub fn set_buff_counter_rules(&self, rules: Vec<CounterRule>) -> Result<(), String> {
         self.send_control(LiveControlCommand::SetBuffCounterRules(rules))
+    }
+
+    pub fn start_training_dummy(&self, monster_id: TrainingDummyMonsterId) -> Result<(), String> {
+        self.send_control(LiveControlCommand::StartTrainingDummy(monster_id))
+    }
+
+    pub fn stop_training_dummy(&self) -> Result<(), String> {
+        self.send_control(LiveControlCommand::StopTrainingDummy)
+    }
+
+    pub fn apply_monitor_runtime_snapshot(&self, snapshot: MonitorRuntimeSnapshot) -> Result<(), String> {
+        self.send_control(LiveControlCommand::ApplyMonitorRuntimeSnapshot(snapshot))
+    }
+
+    /// Applies a MonitorRuntimeSnapshot directly to state (used in live_main.rs startup)
+    pub fn apply_monitor_runtime_snapshot_with_state(&self, state: &mut AppState, snapshot: MonitorRuntimeSnapshot) {
+        state.event_update_rate_ms = snapshot.live.event_update_rate_ms;
+        state.local_monitor.buff_monitor.monitored_buff_ids = snapshot.skill.monitored_buff_ids.into_iter().collect();
+        state.local_monitor.skill_cd_monitor.monitored_skill_ids = snapshot.skill.monitored_skill_ids;
+        state.local_monitor.buff_monitor.monitor_all_buff = snapshot.skill.monitor_all_buff;
+        state.local_monitor.monitored_panel_attr_ids = snapshot.skill.monitored_panel_attr_ids;
+        state.local_monitor.counter_tracker.set_rules(snapshot.skill.buff_counter_rules);
+        state.boss_buff_monitors.set_enabled(snapshot.monster.enabled);
+        state.boss_buff_monitors.set_global_ids(snapshot.monster.global_ids);
+        state.boss_buff_monitors.set_self_applied_ids(snapshot.monster.self_applied_ids);
     }
 }
 

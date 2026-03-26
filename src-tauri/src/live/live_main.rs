@@ -236,6 +236,11 @@ pub async fn start(
     let state_manager = app_handle.state::<AppStateManager>().inner().clone();
     let mut state = AppState::new();
 
+    // Load persisted monitor settings from disk (buffs, skills, panel attrs, counter rules, etc.)
+    if let Some(snapshot) = crate::live::bootstrap_snapshot::load_monitor_runtime_snapshot(&app_handle) {
+        state_manager.apply_monitor_runtime_snapshot_with_state(&mut state, snapshot);
+    }
+
     // Throttling for events - rate is read dynamically from state each iteration
     let mut last_emit_time = Instant::now();
 
