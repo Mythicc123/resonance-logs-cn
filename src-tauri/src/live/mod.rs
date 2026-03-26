@@ -1,3 +1,4 @@
+pub mod bootstrap_snapshot;
 pub mod buff_monitor;
 pub mod commands;
 pub mod commands_models;
@@ -13,4 +14,5 @@ pub mod opcodes_models;
 pub mod opcodes_process;
 pub mod scene_names;
 pub mod skill_cd_monitor;
+pub mod training_dummy;
 pub mod state;
