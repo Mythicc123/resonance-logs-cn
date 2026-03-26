@@ -7,6 +7,9 @@
 
 **Requirements:** BUG-01, BUG-02, BUG-03
 
+**Plans:**
+- [ ] 01-01-PLAN.md — Fix db_send to return Result, propagate errors, add panic on init failure, verify schema guards and NewEncounter
+
 **Success criteria:**
 1. App starts without "DB thread non initialized" errors
 2. Users upgrading from old database versions don't get schema crashes
